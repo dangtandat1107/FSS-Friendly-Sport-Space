@@ -13,4 +13,12 @@ public class Booking
     public decimal TotalPrice { get; set; }
     public BookingStatus Status { get; set; } = BookingStatus.Pending;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+    // Hạn thanh toán. Quá hạn mà chưa trả tiền thì lịch coi như hết hiệu lực
+    public DateTime? ExpiresAt { get; set; }
+
+    public List<Payment> Payments { get; set; } = new();
+
+    // Chỉ có getter nên EF không tạo cột này trong database
+    public bool IsExpired => Status == BookingStatus.Pending && ExpiresAt != null && ExpiresAt <= DateTime.Now;
 }

@@ -1,21 +1,32 @@
 @model List<Booking>
 @{ ViewData["Title"] = "Duyệt lịch"; }
-<h3>Duyệt lịch đặt</h3>
+<h3>Quản lý lịch đặt</h3>
 <table class="table align-middle">
-<tr><th>Sân</th><th>Khách</th><th>Thời gian</th><th>Tiền</th><th>Trạng thái</th><th></th></tr>
+<tr><th>Sân</th><th>Khách</th><th>Thời gian</th><th>Tiền</th><th>Trạng thái</th><th>Thanh toán</th><th></th></tr>
 @foreach (var b in Model)
 {
-  <tr><td>@b.Court?.Name</td><td>@b.Customer?.FullName</td><td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td>
-  <td>@b.TotalPrice.ToString("N0")</td><td>@b.Status.DisplayName()</td>
-  <td class="text-end">
-  @if (b.Status == BookingStatus.Pending)
-  {
-    <form asp-action="SetStatus" asp-route-id="@b.Id" asp-route-status="@BookingStatus.Confirmed" method="post" class="d-inline"><button class="btn btn-sm btn-success">Duyệt</button></form>
-  }
-  @if (b.Status != BookingStatus.Cancelled)
-  {
-    <form asp-action="SetStatus" asp-route-id="@b.Id" asp-route-status="@BookingStatus.Cancelled" method="post" class="d-inline"><button class="btn btn-sm btn-outline-danger">Từ chối/Hủy</button></form>
-  }
-  </td></tr>
+  var paid = b.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Paid);
+  <tr>
+    <td>@b.Court?.Name</td>
+    <td>@b.Customer?.FullName</td>
+    <td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td>
+    <td>@b.TotalPrice.ToString("N0")</td>
+    <td>@(b.IsExpired ? "Hết hạn thanh toán" : b.Status.DisplayName())</td>
+    <td>@(paid != null ? paid.Method.DisplayName() : "-")</td>
+    <td class="text-end">
+      @if (b.Status == BookingStatus.Pending && !b.IsExpired)
+      {
+        <form asp-action="SetStatus" asp-route-id="@b.Id" asp-route-status="@BookingStatus.Confirmed" method="post" class="d-inline">
+          <button class="btn btn-sm btn-success" title="Dùng khi khách trả tiền mặt tại sân">Xác nhận thủ công</button>
+        </form>
+      }
+      @if (b.Status != BookingStatus.Cancelled && !b.IsExpired)
+      {
+        <form asp-action="SetStatus" asp-route-id="@b.Id" asp-route-status="@BookingStatus.Cancelled" method="post" class="d-inline">
+          <button class="btn btn-sm btn-outline-danger">Hủy lịch</button>
+        </form>
+      }
+    </td>
+  </tr>
 }
 </table>

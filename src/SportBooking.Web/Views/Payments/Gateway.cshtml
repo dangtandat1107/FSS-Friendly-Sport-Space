@@ -1,0 +1,51 @@
+@model Payment
+@{
+    ViewData["Title"] = "Cổng thanh toán giả lập";
+    var isMomo = Model.Method == PaymentMethod.Momo;
+}
+<div class="row justify-content-center"><div class="col-lg-6">
+  <div class="alert alert-info">
+    <b>Cổng thanh toán GIẢ LẬP.</b> Không có tiền thật nào được chuyển. Dùng hai nút bên dưới để mô phỏng kết quả thanh toán.
+  </div>
+
+  <div class="card panel-card"><div class="card-body p-4">
+    <h4 class="mb-3">@Model.Method.DisplayName()</h4>
+
+    <div class="text-center mb-3"><div class="fake-qr @(isMomo ? "fake-qr-momo" : "")">Mã QR minh họa</div></div>
+
+    <table class="table">
+      @if (isMomo)
+      {
+        <tr><th style="width:35%">Ví nhận</th><td>FSS Sport Space (0900 000 000)</td></tr>
+      }
+      else
+      {
+        <tr><th style="width:35%">Ngân hàng</th><td>Ngân hàng minh họa</td></tr>
+        <tr><th>Số tài khoản</th><td>0123456789</td></tr>
+        <tr><th>Chủ tài khoản</th><td>FSS SPORT SPACE</td></tr>
+      }
+      <tr><th>Số tiền</th><td class="fw-bold">@Model.Amount.ToString("N0") đ</td></tr>
+      <tr><th>Nội dung</th><td><code>@Model.TransactionCode</code></td></tr>
+      <tr><th>Sân</th><td>@(Model.Booking?.Court?.Name)</td></tr>
+      <tr><th>Thời gian</th><td>@(Model.Booking?.StartTime.ToString("dd/MM/yyyy HH:mm")) - @(Model.Booking?.EndTime.ToString("HH:mm"))</td></tr>
+      @if (Model.Booking?.ExpiresAt != null)
+      {
+        <tr><th>Hạn thanh toán</th><td>@(Model.Booking?.ExpiresAt?.ToString("HH:mm"))</td></tr>
+      }
+    </table>
+
+    <div class="d-flex gap-2">
+      <form asp-action="Complete" method="post" class="flex-fill">
+        <input type="hidden" name="paymentId" value="@Model.Id" />
+        <input type="hidden" name="success" value="true" />
+        <button class="btn btn-success w-100">Giả lập: thanh toán thành công</button>
+      </form>
+      <form asp-action="Complete" method="post" class="flex-fill">
+        <input type="hidden" name="paymentId" value="@Model.Id" />
+        <input type="hidden" name="success" value="false" />
+        <button class="btn btn-outline-danger w-100">Giả lập: thất bại</button>
+      </form>
+    </div>
+    <div class="text-center mt-3"><a asp-action="Pay" asp-route-bookingId="@Model.BookingId">Đổi phương thức</a></div>
+  </div></div>
+</div></div>

@@ -42,6 +42,7 @@ Dự kiến tuần 4: hoàn thiện ERD, vẽ Use Case (StarUML), unit test cho 
 - Đăng ký, đăng nhập, quên mật khẩu bằng mã xác nhận gửi qua email, đổi mật khẩu
 - Trang hồ sơ cá nhân: sửa họ tên, số điện thoại, xem thống kê và lịch sắp tới
 - Tìm sân theo môn và quận, xem lịch trống theo ngày, đặt sân, hủy lịch (trước giờ chơi ít nhất 2 giờ)
+- Thanh toán giả lập (chuyển khoản ngân hàng hoặc MoMo), giữ chỗ 15 phút, thanh toán xong lịch tự động xác nhận
 
 **Chủ sân**
 - Thêm, sửa sân, đổi trạng thái bảo trì

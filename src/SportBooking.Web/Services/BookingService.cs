@@ -11,6 +11,7 @@ public interface IBookingService
 {
     const int OpenHour = 6;
     const int CloseHour = 22;
+    const int PaymentTimeoutMinutes = 15;   // thời gian giữ chỗ chờ thanh toán
     Task<BookingResult> CreateAsync(string customerId, int courtId, DateTime start, int hours);
     Task<HashSet<int>> GetBusyHoursAsync(int courtId, DateTime date);
 }
@@ -40,16 +41,20 @@ public class BookingService : IBookingService
             if (court == null) return new(false, "Sân không tồn tại.");
             if (court.Status != CourtStatus.Active) return new(false, "Sân đang bảo trì.");
 
+            // Một lịch "đang giữ chỗ" nếu đã xác nhận, hoặc đang chờ thanh toán mà chưa quá hạn
+            var now = DateTime.Now;
             var conflict = await _db.Bookings.AnyAsync(b =>
-                b.CourtId == courtId && b.Status != BookingStatus.Cancelled &&
-                b.StartTime < end && b.EndTime > start);
+                b.CourtId == courtId && b.StartTime < end && b.EndTime > start &&
+                (b.Status == BookingStatus.Confirmed ||
+                 (b.Status == BookingStatus.Pending && (b.ExpiresAt == null || b.ExpiresAt > now))));
             if (conflict) return new(false, "Khung giờ này đã có người đặt.");
 
             var booking = new Booking
             {
                 CourtId = courtId, CustomerId = customerId,
                 StartTime = start, EndTime = end,
-                TotalPrice = court.PricePerHour * hours
+                TotalPrice = court.PricePerHour * hours,
+                ExpiresAt = now.AddMinutes(IBookingService.PaymentTimeoutMinutes)
             };
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
@@ -68,8 +73,11 @@ public class BookingService : IBookingService
     public async Task<HashSet<int>> GetBusyHoursAsync(int courtId, DateTime date)
     {
         var d0 = date.Date; var d1 = d0.AddDays(1);
+        var now = DateTime.Now;
         var list = await _db.Bookings
-            .Where(b => b.CourtId == courtId && b.Status != BookingStatus.Cancelled && b.StartTime < d1 && b.EndTime > d0)
+            .Where(b => b.CourtId == courtId && b.StartTime < d1 && b.EndTime > d0 &&
+                (b.Status == BookingStatus.Confirmed ||
+                 (b.Status == BookingStatus.Pending && (b.ExpiresAt == null || b.ExpiresAt > now))))
             .Select(b => new { b.StartTime, b.EndTime }).ToListAsync();
 
         var busy = new HashSet<int>();

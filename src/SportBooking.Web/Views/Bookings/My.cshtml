@@ -2,12 +2,41 @@
 @{ ViewData["Title"] = "Lịch của tôi"; }
 <h3>Lịch đặt của tôi</h3>
 <table class="table align-middle">
-<tr><th>Sân</th><th>Thời gian</th><th>Tiền</th><th>Trạng thái</th><th></th></tr>
+<tr><th>Sân</th><th>Thời gian</th><th>Tiền</th><th>Trạng thái</th><th>Thanh toán</th><th></th></tr>
 @foreach (var b in Model)
 {
-  <tr><td>@b.Court?.Name</td><td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td><td>@b.TotalPrice.ToString("N0")</td>
-  <td>@b.Status.DisplayName()</td>
-  <td>@if (b.Status != BookingStatus.Cancelled && b.StartTime > DateTime.Now)
-      { <form asp-action="Cancel" asp-route-id="@b.Id" method="post"><button class="btn btn-sm btn-outline-danger" onclick="return confirm('Hủy lịch này?')">Hủy</button></form> }</td></tr>
+  var paid = b.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Paid);
+  <tr>
+    <td>@b.Court?.Name</td>
+    <td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td>
+    <td>@b.TotalPrice.ToString("N0")</td>
+    <td>
+      @if (b.IsExpired) { <span class="badge bg-secondary">Hết hạn thanh toán</span> }
+      else if (b.Status == BookingStatus.Pending)
+      {
+        <span class="badge bg-warning text-dark">Chờ thanh toán</span>
+        @if (b.ExpiresAt != null) { <div class="small text-muted">Hạn @(b.ExpiresAt?.ToString("HH:mm"))</div> }
+      }
+      else if (b.Status == BookingStatus.Confirmed) { <span class="badge bg-success">Đã xác nhận</span> }
+      else { <span class="badge bg-secondary">Đã hủy</span> }
+    </td>
+    <td>
+      @if (paid != null) { <div>@paid.Method.DisplayName()</div><div class="small text-muted">@paid.TransactionCode</div> }
+      else if (b.Payments.Any(p => p.Status == PaymentStatus.Refunded)) { <span class="text-muted">Đã hoàn tiền</span> }
+      else { <span class="text-muted">-</span> }
+    </td>
+    <td class="text-end">
+      @if (b.Status == BookingStatus.Pending && !b.IsExpired)
+      {
+        <a class="btn btn-sm btn-success" asp-controller="Payments" asp-action="Pay" asp-route-bookingId="@b.Id">Thanh toán</a>
+      }
+      @if (b.Status != BookingStatus.Cancelled && !b.IsExpired && b.StartTime > DateTime.Now)
+      {
+        <form asp-action="Cancel" asp-route-id="@b.Id" method="post" class="d-inline">
+          <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Hủy lịch này?')">Hủy</button>
+        </form>
+      }
+    </td>
+  </tr>
 }
 </table>

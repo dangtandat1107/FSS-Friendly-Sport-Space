@@ -35,6 +35,7 @@ builder.Services.AddTransient<IAppEmailSender, SmtpEmailSender>();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
 

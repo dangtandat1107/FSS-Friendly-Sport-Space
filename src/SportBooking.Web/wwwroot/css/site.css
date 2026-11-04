@@ -15,3 +15,11 @@ body { background: #f8fafc; }
 .nav-tabs .nav-link.active { color: var(--fss-dark); font-weight: 600; }
 .btn-success { background-color: var(--fss); border-color: var(--fss); }
 .btn-success:hover { background-color: var(--fss-dark); border-color: var(--fss-dark); }
+
+/* Cổng thanh toán giả lập */
+.fake-qr { width: 180px; height: 180px; margin: 0 auto; border: 3px dashed #94a3b8; border-radius: .75rem;
+  display: flex; align-items: center; justify-content: center; color: #64748b; font-weight: 600;
+  background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 10px, #e2e8f0 10px, #e2e8f0 20px); }
+.fake-qr-momo { border-color: #be185d; color: #be185d; background: #fdf2f8; }
+.method-card { cursor: pointer; border-radius: .75rem; }
+.method-card:hover { background: #f0fdf4; }
