@@ -1,29 +1,52 @@
+@inject Microsoft.Extensions.Options.IOptions<PaymentOptions> PayOpt
+@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
 @model Payment
 @{
-    ViewData["Title"] = "Cổng thanh toán giả lập";
+    ViewData["Title"] = "Cổng thanh toán";
     var isMomo = Model.Method == PaymentMethod.Momo;
+    var acct = isMomo ? PayOpt.Value.Momo : PayOpt.Value.Bank;
+
+    string Or(string? v, string fallback) => string.IsNullOrWhiteSpace(v) ? fallback : v;
+
+    var isDemo = string.IsNullOrWhiteSpace(acct.AccountNumber);
+    var bankName = Or(acct.BankName, isMomo ? "Ví MoMo" : "Ngân hàng minh họa");
+    var accountNo = Or(acct.AccountNumber, isMomo ? "0900 000 000" : "0123456789");
+    var accountName = Or(acct.AccountName, "FSS SPORT SPACE");
+    var hasQr = !string.IsNullOrWhiteSpace(acct.QrImage) && Env.WebRootFileProvider.GetFileInfo(acct.QrImage).Exists;
 }
 <div class="row justify-content-center"><div class="col-lg-6">
-  <div class="alert alert-info">
-    <b>Cổng thanh toán GIẢ LẬP.</b> Không có tiền thật nào được chuyển. Dùng hai nút bên dưới để mô phỏng kết quả thanh toán.
-  </div>
+  @if (hasQr)
+  {
+    <div class="alert alert-warning">
+      <b>Đang dùng tài khoản thật để thử nghiệm.</b> Hệ thống <b>không tự đối soát</b> tiền chuyển vào. Sau khi chuyển (hoặc không chuyển), bấm nút "Giả lập" bên dưới để hoàn tất.
+    </div>
+  }
+  else
+  {
+    <div class="alert alert-info">
+      <b>Cổng thanh toán GIẢ LẬP.</b> Không có tiền thật nào được chuyển. Dùng hai nút bên dưới để mô phỏng kết quả thanh toán.
+    </div>
+  }
 
   <div class="card panel-card"><div class="card-body p-4">
     <h4 class="mb-3">@Model.Method.DisplayName()</h4>
 
-    <div class="text-center mb-3"><div class="fake-qr @(isMomo ? "fake-qr-momo" : "")">Mã QR minh họa</div></div>
-
-    <table class="table">
-      @if (isMomo)
+    <div class="text-center mb-3">
+      @if (hasQr)
       {
-        <tr><th style="width:35%">Ví nhận</th><td>FSS Sport Space (0900 000 000)</td></tr>
+        <img src="@acct.QrImage" alt="Mã QR thanh toán" style="width:220px;height:220px;" />
+        <div class="small text-muted mt-1">Mã QR chưa gắn sẵn số tiền, hãy nhập đúng số tiền và nội dung bên dưới.</div>
       }
       else
       {
-        <tr><th style="width:35%">Ngân hàng</th><td>Ngân hàng minh họa</td></tr>
-        <tr><th>Số tài khoản</th><td>0123456789</td></tr>
-        <tr><th>Chủ tài khoản</th><td>FSS SPORT SPACE</td></tr>
+        <div class="fake-qr @(isMomo ? "fake-qr-momo" : "")">Mã QR minh họa</div>
       }
+    </div>
+
+    <table class="table">
+      <tr><th style="width:35%">@(isMomo ? "Ví nhận" : "Ngân hàng")</th><td>@bankName</td></tr>
+      <tr><th>@(isMomo ? "Số điện thoại" : "Số tài khoản")</th><td>@accountNo</td></tr>
+      <tr><th>Chủ tài khoản</th><td>@accountName</td></tr>
       <tr><th>Số tiền</th><td class="fw-bold">@Model.Amount.ToString("N0") đ</td></tr>
       <tr><th>Nội dung</th><td><code>@Model.TransactionCode</code></td></tr>
       <tr><th>Sân</th><td>@(Model.Booking?.Court?.Name)</td></tr>

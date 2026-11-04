@@ -4,3 +4,6 @@ obj/
 .vscode/
 *.user
 .env
+
+# Mã QR và thông tin tài khoản thật, không đưa lên GitHub
+src/SportBooking.Web/wwwroot/payment/

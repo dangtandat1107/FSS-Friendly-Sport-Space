@@ -107,6 +107,15 @@ Dùng Gmail SMTP với **App Password** của Google (không dùng mật khẩu 
 
 Không commit mật khẩu hay file `.env` lên GitHub. Nếu chưa cấu hình, ở môi trường Development nội dung email (có mã xác nhận) sẽ được ghi ra log.
 
+## Cấu hình tài khoản nhận tiền (thanh toán)
+Mặc định trang thanh toán hiển thị dữ liệu minh họa. Muốn thử với tài khoản thật, đặt trong User Secrets (chạy local) hoặc file `.env` (Docker), không ghi vào code:
+
+```json
+{ "Payment": { "Bank": { "BankName": "...", "AccountNumber": "...", "AccountName": "...", "QrImage": "/payment/bank-qr.png" } } }
+```
+
+Ảnh mã QR đặt tại `src/SportBooking.Web/wwwroot/payment/bank-qr.png` (thư mục này nằm trong `.gitignore`). Hệ thống chỉ mô phỏng thanh toán và không tự đối soát tiền thật.
+
 ## Cấu trúc thư mục
 ```
 src/SportBooking.Web

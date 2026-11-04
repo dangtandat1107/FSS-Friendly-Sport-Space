@@ -31,6 +31,7 @@ builder.Services.ConfigureApplicationCookie(o =>
 });
 
 builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection("Email"));
+builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection("Payment"));
 builder.Services.AddTransient<IAppEmailSender, SmtpEmailSender>();
 builder.Services.AddMemoryCache();
 

@@ -15,6 +15,10 @@ services:
       TZ: Asia/Ho_Chi_Minh
       Email__User: ${SMTP_USER:-}
       Email__Password: ${SMTP_PASSWORD:-}
+      Payment__Bank__BankName: ${BANK_NAME:-}
+      Payment__Bank__AccountNumber: ${BANK_ACCOUNT_NUMBER:-}
+      Payment__Bank__AccountName: ${BANK_ACCOUNT_NAME:-}
+      Payment__Bank__QrImage: ${BANK_QR_IMAGE:-}
     ports: ["8080:8080"]
 
 volumes:
