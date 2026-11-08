@@ -1,34 +1,92 @@
 @model CourtDetailsVm
-@{ ViewData["Title"] = Model.Court.Name; var now = DateTime.Now; }
-<h3>@Model.Court.Name</h3>
-<p>@Model.Court.SportType.DisplayName() · @Model.Court.District · @Model.Court.Address · <b>@Model.Court.PricePerHour.ToString("N0") đ/giờ</b></p>
-
-<form method="get" class="row g-2 mb-3">
-  <div class="col-auto"><input type="date" name="date" class="form-control" value="@Model.Date.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" /></div>
-  <div class="col-auto"><button class="btn btn-outline-success">Xem ngày</button></div>
-</form>
-
-@if (Model.Court.Status == CourtStatus.Maintenance) { <div class="alert alert-warning">Sân đang bảo trì, tạm thời không nhận đặt.</div> }
-
-<div class="d-flex flex-wrap gap-2">
-@for (var h = IBookingService.OpenHour; h < IBookingService.CloseHour; h++)
-{
-  var busy = Model.BusyHours.Contains(h);
-  var past = Model.Date.AddHours(h) < now;
-  var disabled = busy || past || Model.Court.Status != CourtStatus.Active;
-  if (User.IsInRole("Customer") && !disabled)
-  {
-    <form asp-controller="Bookings" asp-action="Create" method="post">
-      <input type="hidden" name="courtId" value="@Model.Court.Id" />
-      <input type="hidden" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
-      <input type="hidden" name="hour" value="@h" />
-      <button class="btn btn-success" onclick="return confirm('Đặt @h:00 - @(h+1):00 ?')">@h:00 - @(h+1):00</button>
-    </form>
-  }
-  else
-  {
-    <button class="btn @(busy ? "btn-danger" : "btn-outline-secondary")" disabled>@h:00 - @(h+1):00 @(busy ? "(đã đặt)" : "")</button>
-  }
+@{
+    var c = Model.Court;
+    var m = c.SportType.Meta();
+    var now = DateTime.Now;
+    ViewData["Title"] = c.Name;
+    var groups = new[] { (Label: "Sáng", Start: 6, End: 12), (Label: "Chiều", Start: 12, End: 18), (Label: "Tối", Start: 18, End: 22) };
+    string[] dow = { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
+    var isCustomer = User.IsInRole("Customer");
 }
+<div style="--sport:@m.Color">
+  <section class="court-banner mb-4">
+    <img src="@m.Image" alt="" />
+    <div class="inner">
+      <div class="fw-semibold">@m.Label</div>
+      <h1>@c.Name</h1>
+      <div class="mt-2">@c.District, @c.Address. <b>@c.PricePerHour.ToString("N0") đ/giờ</b></div>
+    </div>
+  </section>
+
+  @if (c.Status == CourtStatus.Maintenance)
+  {
+    <div class="alert alert-warning">Sân đang bảo trì, tạm thời không nhận đặt.</div>
+  }
+
+  <h4>Chọn ngày</h4>
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+    @for (var i = 0; i < 7; i++)
+    {
+      var d = DateTime.Today.AddDays(i);
+      <a class="day-chip @(d == Model.Date.Date ? "active" : "")" asp-action="Details" asp-route-id="@c.Id" asp-route-date="@d.ToString("yyyy-MM-dd")">
+        <b>@(i == 0 ? "Nay" : dow[(int)d.DayOfWeek])</b><small>@d.ToString("dd/MM")</small>
+      </a>
+    }
+    <form method="get" class="ms-md-2">
+      <input type="date" name="date" class="form-control form-control-sm" value="@Model.Date.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" aria-label="Chọn ngày khác" onchange="this.form.submit()" />
+    </form>
+  </div>
+
+  @if (Model.Date.Date == DateTime.Today && now > DateTime.Today.AddHours(IBookingService.CloseHour - 1))
+  {
+    <div class="alert alert-info">Hôm nay đã hết khung giờ có thể đặt. Hãy chọn một ngày khác ở phía trên.</div>
+  }
+
+  <h4>Khung giờ ngày @Model.Date.ToString("dd/MM/yyyy")</h4>
+  <div class="legend mb-3"><span><i></i>Còn trống</span><span><i class="b"></i>Đã có người đặt</span><span><i class="p"></i>Đã qua</span></div>
+
+  @foreach (var g in groups)
+  {
+    var startH = Math.Max(g.Start, IBookingService.OpenHour);
+    var endH = Math.Min(g.End, IBookingService.CloseHour);
+    if (startH >= endH) { continue; }
+    <div class="mb-4">
+      <div class="fw-semibold mb-2">@g.Label</div>
+      <div class="slot-row">
+        @for (var h = startH; h < endH; h++)
+        {
+          var busy = Model.BusyHours.Contains(h);
+          var past = Model.Date.Date.AddHours(h) < now;
+          if (busy)
+          {
+            <span class="slot slot-busy">@h:00 - @(h + 1):00</span>
+          }
+          else if (past || c.Status != CourtStatus.Active)
+          {
+            <span class="slot slot-past">@h:00 - @(h + 1):00</span>
+          }
+          else if (isCustomer)
+          {
+            <form asp-controller="Bookings" asp-action="Create" method="post">
+              <input type="hidden" name="courtId" value="@c.Id" />
+              <input type="hidden" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+              <input type="hidden" name="hour" value="@h" />
+              <button class="slot" onclick="return confirm('Đặt @h:00 - @(h + 1):00 ?')">@h:00 - @(h + 1):00</button>
+            </form>
+          }
+          else
+          {
+            <span class="slot">@h:00 - @(h + 1):00</span>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  @if (User.Identity?.IsAuthenticated != true)
+  {
+    <div class="panel-card p-3">
+      <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Đăng nhập</a> bằng tài khoản khách hàng để chọn khung giờ và đặt sân.
+    </div>
+  }
 </div>
-@if (!User.Identity!.IsAuthenticated) { <p class="mt-3"><a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Đăng nhập</a> để đặt sân.</p> }

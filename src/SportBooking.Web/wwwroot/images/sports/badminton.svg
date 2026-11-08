@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Sân cầu lông nhìn từ trên xuống">
+<title>Sân cầu lông nhìn từ trên xuống</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0e8f8a"/><stop offset="1" stop-color="#0a6f6b"/></linearGradient></defs>
+<rect width="640" height="400" fill="url(#bg)"/>
+<rect x="26.0" y="52.0" width="588.0" height="296.0" fill="#0b7a76" opacity=".55"/>
+<rect x="52.0" y="78.0" width="536.0" height="244.0" fill="#13a39b"/>
+<rect x="52.0" y="78.0" width="536.0" height="244.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="52.0" y1="96.4" x2="588.0" y2="96.4" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="52.0" y1="303.6" x2="588.0" y2="303.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="82.4" y1="78.0" x2="82.4" y2="322.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="557.6" y1="78.0" x2="557.6" y2="322.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="240.8" y1="96.4" x2="240.8" y2="303.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="399.2" y1="96.4" x2="399.2" y2="303.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="82.4" y1="200.0" x2="240.8" y2="200.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="399.2" y1="200.0" x2="557.6" y2="200.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320.0" y1="64.0" x2="320.0" y2="336.0" fill="none" stroke="#d8f05a" stroke-width="5" stroke-linecap="round"/>
+</svg>

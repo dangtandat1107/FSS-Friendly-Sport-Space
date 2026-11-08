@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Sân bóng rổ nhìn từ trên xuống">
+<title>Sân bóng rổ nhìn từ trên xuống</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a9561f"/><stop offset="1" stop-color="#8a4415"/></linearGradient></defs>
+<rect width="640" height="400" fill="url(#bg)"/>
+<rect x="0.0" y="0.0" width="640.0" height="400.0" fill="#a9561f"/>
+<rect x="26.0" y="42.5" width="588.0" height="315.0" fill="#d08a45"/>
+<line x1="26.0" y1="42.5" x2="26.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="68.0" y1="42.5" x2="68.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="110.0" y1="42.5" x2="110.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="152.0" y1="42.5" x2="152.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="194.0" y1="42.5" x2="194.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="236.0" y1="42.5" x2="236.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="278.0" y1="42.5" x2="278.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="320.0" y1="42.5" x2="320.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="362.0" y1="42.5" x2="362.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="404.0" y1="42.5" x2="404.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="446.0" y1="42.5" x2="446.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="488.0" y1="42.5" x2="488.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="530.0" y1="42.5" x2="530.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<line x1="572.0" y1="42.5" x2="572.0" y2="357.5" stroke="#b9722f" stroke-width="1" opacity=".5"/>
+<rect x="26.0" y="42.5" width="588.0" height="315.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320.0" y1="42.5" x2="320.0" y2="357.5" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="320.0" cy="200.0" r="37.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="26.0" y="148.6" width="121.8" height="102.9" fill="#b8501f" opacity=".85"/>
+<rect x="26.0" y="148.6" width="121.8" height="102.9" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="147.8" cy="200.0" r="37.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="59.1" cy="200.0" r="6.3" fill="none" stroke="#d8f05a" stroke-width="3"/>
+<line x1="51.2" y1="181.1" x2="51.2" y2="218.9" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 59.1 173.8 A 26.2 26.2 0 0 1 59.1 226.2" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 26.0 61.4 L 88.8 61.4 A 141.8 141.8 0 0 1 88.8 338.6 L 26.0 338.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="492.2" y="148.6" width="121.8" height="102.9" fill="#b8501f" opacity=".85"/>
+<rect x="492.2" y="148.6" width="121.8" height="102.9" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="492.2" cy="200.0" r="37.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="580.9" cy="200.0" r="6.3" fill="none" stroke="#d8f05a" stroke-width="3"/>
+<line x1="588.8" y1="181.1" x2="588.8" y2="218.9" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 580.9 173.8 A 26.2 26.2 0 0 0 580.9 226.2" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M 614.0 61.4 L 551.2 61.4 A 141.8 141.8 0 0 0 551.2 338.6 L 614.0 338.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>

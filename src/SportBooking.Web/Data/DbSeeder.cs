@@ -7,6 +7,20 @@ public static class DbSeeder
 {
     public static readonly string[] Roles = { "Admin", "Owner", "Customer" };
 
+    private record SampleCourt(SportType Sport, string Name, string District, string Address, decimal Price);
+
+    private static readonly SampleCourt[] Samples =
+    {
+        new(SportType.Badminton,  "Sân cầu lông A1",       "Quận 1",  "12 Nguyễn Huệ",        80000),
+        new(SportType.Badminton,  "Sân cầu lông A2",       "Quận 1",  "12 Nguyễn Huệ",        80000),
+        new(SportType.Football,   "Sân bóng đá mini B1",   "Quận 7",  "45 Nguyễn Thị Thập",  350000),
+        new(SportType.Tennis,     "Sân tennis C1",         "Quận 3",  "88 Võ Văn Tần",       200000),
+        new(SportType.Pickleball, "Sân pickleball P1",     "Quận 2",  "25 Trần Não",         120000),
+        new(SportType.Pickleball, "Sân pickleball P2",     "Quận 2",  "25 Trần Não",         120000),
+        new(SportType.Basketball, "Sân bóng rổ R1",        "Quận 10", "70 Lý Thường Kiệt",   250000),
+        new(SportType.Basketball, "Sân bóng rổ R2",        "Quận 10", "70 Lý Thường Kiệt",   250000),
+    };
+
     public static async Task InitAsync(IServiceProvider sp)
     {
         var db = sp.GetRequiredService<AppDbContext>();
@@ -32,15 +46,14 @@ public static class DbSeeder
         var owner = await EnsureUser(userMgr, "owner@demo.com", "Chủ sân Demo", "Owner@123", "Owner");
         await EnsureUser(userMgr, "customer@demo.com", "Khách Demo", "Customer@123", "Customer");
 
-        if (!await db.Courts.AnyAsync())
+        // Môn nào chưa có sân nào thì thêm sân mẫu (database cũ khi thêm môn mới cũng được bổ sung)
+        foreach (var sport in Samples.Select(s => s.Sport).Distinct())
         {
-            db.Courts.AddRange(
-                new Court { Name = "Sân cầu lông A1", SportType = SportType.Badminton, District = "Quận 1", Address = "12 Nguyễn Huệ", PricePerHour = 80000, OwnerId = owner.Id },
-                new Court { Name = "Sân cầu lông A2", SportType = SportType.Badminton, District = "Quận 1", Address = "12 Nguyễn Huệ", PricePerHour = 80000, OwnerId = owner.Id },
-                new Court { Name = "Sân bóng đá mini B1", SportType = SportType.Football, District = "Quận 7", Address = "45 Nguyễn Thị Thập", PricePerHour = 350000, OwnerId = owner.Id },
-                new Court { Name = "Sân tennis C1", SportType = SportType.Tennis, District = "Quận 3", Address = "88 Võ Văn Tần", PricePerHour = 200000, OwnerId = owner.Id });
-            await db.SaveChangesAsync();
+            if (await db.Courts.AnyAsync(c => c.SportType == sport)) continue;
+            foreach (var s in Samples.Where(x => x.Sport == sport))
+                db.Courts.Add(new Court { Name = s.Name, SportType = s.Sport, District = s.District, Address = s.Address, PricePerHour = s.Price, OwnerId = owner.Id });
         }
+        await db.SaveChangesAsync();
     }
 
     private static async Task<ApplicationUser> EnsureUser(UserManager<ApplicationUser> um, string email, string name, string pwd, string role)

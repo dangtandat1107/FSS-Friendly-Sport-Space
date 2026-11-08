@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Sân pickleball nhìn từ trên xuống">
+<title>Sân pickleball nhìn từ trên xuống</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6d4fc2"/><stop offset="1" stop-color="#52399a"/></linearGradient></defs>
+<rect width="640" height="400" fill="url(#bg)"/>
+<rect x="25.8" y="52.0" width="588.4" height="296.0" fill="#5a3fae" opacity=".6"/>
+<rect x="51.8" y="78.0" width="536.4" height="244.0" fill="#7a5bd6"/>
+<rect x="234.8" y="78.0" width="170.4" height="244.0" fill="#9a82e6" opacity=".75"/>
+<rect x="51.8" y="78.0" width="536.4" height="244.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="234.8" y1="78.0" x2="234.8" y2="322.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="405.2" y1="78.0" x2="405.2" y2="322.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="51.8" y1="200.0" x2="234.8" y2="200.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="405.2" y1="200.0" x2="588.2" y2="200.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320.0" y1="64.0" x2="320.0" y2="336.0" fill="none" stroke="#d8f05a" stroke-width="5" stroke-linecap="round"/>
+</svg>

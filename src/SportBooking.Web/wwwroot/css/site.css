@@ -1,25 +1,118 @@
-:root { --fss: #16a34a; --fss-dark: #166534; }
-body { background: #f8fafc; }
-.navbar-fss { background: linear-gradient(90deg, #166534, #16a34a); }
-.navbar-brand small { font-weight: 400; opacity: .8; font-size: .7rem; display: block; line-height: 1; }
-.avatar { width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg, #16a34a, #0ea5e9);
-  color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; font-weight: 700; flex-shrink: 0; }
-.avatar-sm { width: 28px; height: 28px; font-size: .85rem; }
-.profile-hero { background: linear-gradient(135deg, #ecfdf5, #e0f2fe); border-radius: 1.25rem; }
-.stat-card { border: 0; border-radius: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-.stat-card .stat-value { font-size: 1.75rem; font-weight: 700; color: var(--fss-dark); }
-.panel-card { border: 0; border-radius: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); }
-.hero-home { background: linear-gradient(135deg, #166534, #16a34a 60%, #0ea5e9); color: #fff; border-radius: 1.5rem; }
-.sport-tile { border: 0; border-radius: 1rem; box-shadow: 0 2px 10px rgba(0,0,0,.06); transition: transform .15s; text-decoration: none; color: inherit; }
-.sport-tile:hover { transform: translateY(-3px); color: inherit; }
-.nav-tabs .nav-link.active { color: var(--fss-dark); font-weight: 600; }
-.btn-success { background-color: var(--fss); border-color: var(--fss); }
-.btn-success:hover { background-color: var(--fss-dark); border-color: var(--fss-dark); }
+/* FSS - Friendly Sport Space
+   Màu: Ink #10241c (chữ), Forest #0f3d2e (nền hero), Brand #12804f (nút), Lime #d8f05a (vạch sân), Paper #f5f8f4 (nền trang), Mist #dfe8e2 (viền) */
+:root {
+  --ink: #10241c; --forest: #0f3d2e; --brand: #12804f; --brand-dark: #0c6a41; --lime: #d8f05a;
+  --paper: #f5f8f4; --mist: #dfe8e2; --muted: #5b6f65;
+  --font-body: 'Be Vietnam Pro', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Barlow Condensed', 'Be Vietnam Pro', 'Arial Narrow', sans-serif;
+  --bs-success: #12804f; --bs-success-rgb: 18, 128, 79; --bs-link-color: #0c6a41; --bs-link-hover-color: #0f3d2e;
+}
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-body); background: var(--paper); color: var(--ink); }
+h1, h2, h3, h4, h5 { font-family: var(--font-display); font-weight: 700; letter-spacing: .005em; }
+h3 { font-size: 2rem; } h4 { font-size: 1.6rem; } h5 { font-size: 1.3rem; }
+.text-muted { color: var(--muted) !important; }
+:focus-visible { outline: 3px solid var(--brand-dark); outline-offset: 2px; }
+.hero :focus-visible { outline-color: var(--lime); }
 
-/* Cổng thanh toán giả lập */
-.fake-qr { width: 180px; height: 180px; margin: 0 auto; border: 3px dashed #94a3b8; border-radius: .75rem;
-  display: flex; align-items: center; justify-content: center; color: #64748b; font-weight: 600;
-  background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 10px, #e2e8f0 10px, #e2e8f0 20px); }
+/* Nút và form */
+.btn { border-radius: 10px; font-weight: 600; }
+.btn-success { --bs-btn-bg: var(--brand); --bs-btn-border-color: var(--brand); --bs-btn-hover-bg: var(--brand-dark);
+  --bs-btn-hover-border-color: var(--brand-dark); --bs-btn-active-bg: var(--brand-dark); --bs-btn-active-border-color: var(--brand-dark);
+  --bs-btn-disabled-bg: var(--brand); --bs-btn-disabled-border-color: var(--brand); }
+.btn-outline-success { --bs-btn-color: var(--brand-dark); --bs-btn-border-color: var(--brand); --bs-btn-hover-bg: var(--brand);
+  --bs-btn-hover-border-color: var(--brand); --bs-btn-active-bg: var(--brand-dark); --bs-btn-active-border-color: var(--brand-dark); }
+.btn-lime { background: var(--lime); color: var(--forest); border-color: var(--lime); }
+.btn-lime:hover { background: #e6f98a; color: var(--forest); border-color: #e6f98a; }
+.form-control, .form-select { border-radius: 10px; border-color: #cbd8d0; }
+.form-control:focus, .form-select:focus { border-color: var(--brand); box-shadow: 0 0 0 .2rem rgba(18, 128, 79, .18); }
+.form-check-input:checked { background-color: var(--brand); border-color: var(--brand); }
+.alert { border-radius: 12px; border: 0; }
+.badge { font-weight: 600; border-radius: 6px; }
+.table { --bs-table-bg: #fff; --bs-table-border-color: var(--mist); }
+.table th { font-weight: 600; color: var(--muted); }
+code { color: var(--forest); background: #eef3ef; padding: .1rem .35rem; border-radius: 5px; }
+
+/* Thanh điều hướng */
+.site-nav { background: #fff; border-bottom: 1px solid var(--mist); }
+.site-nav .navbar-brand { display: flex; align-items: center; gap: .6rem; color: var(--brand); padding: .6rem 0; }
+.brand-name { font-family: var(--font-display); font-weight: 700; font-size: 1.9rem; line-height: 1; color: var(--forest); letter-spacing: .02em; }
+.brand-sub { display: block; font-family: var(--font-body); font-size: .68rem; font-weight: 500; color: var(--muted); letter-spacing: 0; }
+.site-nav .nav-link { color: var(--ink); font-weight: 500; border-radius: 8px; padding: .45rem .8rem; }
+.site-nav .nav-link:hover { background: #eef3ef; }
+.site-nav .dropdown-menu { border-radius: 12px; border-color: var(--mist); }
+.site-footer { color: var(--muted); font-size: .85rem; }
+
+/* Hình đại diện (hồ sơ, menu) */
+.avatar { width: 96px; height: 96px; border-radius: 50%; background: var(--forest); color: var(--lime);
+  display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 2.8rem; font-weight: 700; flex-shrink: 0; }
+.avatar-sm { width: 28px; height: 28px; font-size: 1rem; }
+
+/* Thẻ và khối nội dung */
+.panel-card { background: #fff; border: 1px solid var(--mist); border-radius: 16px; box-shadow: 0 1px 2px rgba(16, 36, 28, .04); }
+.profile-hero { background: #fff; border: 1px solid var(--mist); border-radius: 16px; }
+.stat-card { background: #fff; border: 1px solid var(--mist); border-radius: 12px; }
+.stat-card .stat-value { font-family: var(--font-display); font-size: 2rem; font-weight: 700; color: var(--forest); line-height: 1.1; }
+.nav-tabs { border-bottom-color: var(--mist); }
+.nav-tabs .nav-link { color: var(--muted); border-radius: 8px 8px 0 0; }
+.nav-tabs .nav-link.active { color: var(--forest); font-weight: 600; border-color: var(--mist) var(--mist) #fff; }
+
+/* Trang chủ */
+.hero { position: relative; background: var(--forest); color: #fff; border-radius: 22px; overflow: hidden; padding: 4.5rem 2.75rem 3.5rem; }
+.hero::before { content: ""; position: absolute; inset: 0; background: url('/images/sports/hero-lines.svg') center / cover no-repeat; opacity: .3; animation: lines-in 1.4s ease-out both; }
+.hero > * { position: relative; }
+.hero h1 { font-size: clamp(3.2rem, 8vw, 6rem); line-height: .92; margin-bottom: 1.25rem; }
+.hero-copy { max-width: 36rem; font-size: 1.1rem; color: #d3e3da; }
+.hero-search { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; gap: .6rem; max-width: 40rem; margin-top: 2rem; }
+@keyframes lines-in { from { opacity: 0; transform: scale(1.05); } to { opacity: .3; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hero::before { animation: none; } html { scroll-behavior: auto; } }
+@media (max-width: 640px) { .hero { padding: 2.5rem 1.25rem; } .hero-search { grid-template-columns: 1fr; } }
+
+.section-title { margin: 3rem 0 1rem; }
+.sport-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1rem; }
+.sport-tile { position: relative; display: block; border-radius: 16px; overflow: hidden; color: #fff; text-decoration: none; aspect-ratio: 4 / 3; background: var(--sport); }
+.sport-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .35s; }
+.sport-tile:hover img { transform: scale(1.05); }
+.sport-tile .label { position: absolute; left: 0; right: 0; bottom: 0; padding: 1.5rem 1rem .8rem; background: linear-gradient(transparent, rgba(0, 0, 0, .6)); }
+.sport-tile .name { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; line-height: 1; }
+.sport-tile .count { font-size: .85rem; opacity: .9; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1.5rem; }
+.step-no { font-family: var(--font-display); font-size: 2.6rem; font-weight: 700; color: var(--brand); line-height: 1; }
+
+/* Thẻ sân */
+.court-card { background: #fff; border: 1px solid var(--mist); border-radius: 14px; overflow: hidden; height: 100%; display: flex; flex-direction: column; }
+.court-card .thumb { aspect-ratio: 16 / 9; background: var(--sport); position: relative; }
+.court-card .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.court-card .price { position: absolute; right: .6rem; bottom: .6rem; background: var(--ink); color: #fff; border-radius: 8px; padding: .15rem .6rem; font-weight: 600; font-size: .9rem; }
+.chip { display: inline-block; padding: .35rem .9rem; border-radius: 999px; border: 1.5px solid var(--mist); background: #fff; color: var(--ink); text-decoration: none; font-weight: 500; font-size: .92rem; }
+.chip:hover { border-color: var(--chip, var(--brand)); color: var(--ink); }
+.chip.active { background: var(--chip, var(--brand)); border-color: var(--chip, var(--brand)); color: #fff; }
+
+/* Chi tiết sân và chọn giờ */
+.court-banner { position: relative; border-radius: 18px; overflow: hidden; background: var(--sport); color: #fff; min-height: 190px; }
+.court-banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.court-banner .inner { position: relative; padding: 2.2rem 1.5rem 1.2rem; min-height: 190px; display: flex; flex-direction: column; justify-content: flex-end;
+  background: linear-gradient(transparent 20%, rgba(0, 0, 0, .65)); }
+.court-banner h1 { font-size: clamp(2.2rem, 5vw, 3.2rem); margin: 0; line-height: 1; }
+.day-chip { display: inline-flex; flex-direction: column; align-items: center; min-width: 64px; padding: .4rem .7rem; border-radius: 10px; border: 1.5px solid var(--mist); background: #fff; color: var(--ink); text-decoration: none; line-height: 1.2; }
+.day-chip small { color: var(--muted); }
+.day-chip:hover { border-color: var(--sport, var(--brand)); color: var(--ink); }
+.day-chip.active { background: var(--sport, var(--brand)); border-color: var(--sport, var(--brand)); color: #fff; }
+.day-chip.active small { color: rgba(255, 255, 255, .85); }
+.slot-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: .5rem; }
+.slot { display: block; width: 100%; padding: .55rem .25rem; border-radius: 8px; border: 1.5px solid var(--sport, var(--brand)); background: #fff; color: var(--ink); font-weight: 600; text-align: center; font-size: .95rem; }
+button.slot:hover { background: var(--sport, var(--brand)); color: #fff; }
+.slot-busy { border-color: var(--mist); color: #8a9a92; cursor: not-allowed; font-weight: 500;
+  background: repeating-linear-gradient(45deg, #eef2ef, #eef2ef 6px, #e3e9e5 6px, #e3e9e5 12px); }
+.slot-past { border-color: var(--mist); color: #aab5af; background: #fafbfa; cursor: not-allowed; font-weight: 500; }
+.legend span { display: inline-flex; align-items: center; gap: .4rem; margin-right: 1.1rem; font-size: .85rem; color: var(--muted); }
+.legend i { width: 14px; height: 14px; border-radius: 4px; display: inline-block; border: 1.5px solid var(--sport, var(--brand)); background: #fff; }
+.legend i.b { border-color: var(--mist); background: repeating-linear-gradient(45deg, #eef2ef, #eef2ef 3px, #e3e9e5 3px, #e3e9e5 6px); }
+.legend i.p { border-color: var(--mist); background: #fafbfa; }
+
+/* Thanh toán */
+.fake-qr { width: 180px; height: 180px; margin: 0 auto; border: 3px dashed #94a3b8; border-radius: .75rem; display: flex; align-items: center; justify-content: center;
+  color: #64748b; font-weight: 600; background: repeating-linear-gradient(45deg, #f1f5f9, #f1f5f9 10px, #e2e8f0 10px, #e2e8f0 20px); }
 .fake-qr-momo { border-color: #be185d; color: #be185d; background: #fdf2f8; }
-.method-card { cursor: pointer; border-radius: .75rem; }
-.method-card:hover { background: #f0fdf4; }
+.method-card { cursor: pointer; border-radius: 12px; background: #fff; }
+.method-card:hover { background: #f0f7f2; }

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Sân tennis nhìn từ trên xuống">
+<title>Sân tennis nhìn từ trên xuống</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2d68b8"/><stop offset="1" stop-color="#214f93"/></linearGradient></defs>
+<rect width="640" height="400" fill="url(#bg)"/>
+<rect x="4.8" y="40.4" width="630.5" height="319.3" fill="#245a9e" opacity=".75"/>
+<rect x="34.8" y="68.4" width="570.5" height="263.3" fill="#3a7bd5"/>
+<rect x="34.8" y="68.4" width="570.5" height="263.3" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="34.8" y1="101.2" x2="605.2" y2="101.2" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="34.8" y1="298.8" x2="605.2" y2="298.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="166.4" y1="101.2" x2="166.4" y2="298.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="473.6" y1="101.2" x2="473.6" y2="298.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="166.4" y1="200.0" x2="473.6" y2="200.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="34.8" y1="200.0" x2="43.2" y2="200.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="596.8" y1="200.0" x2="605.2" y2="200.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<line x1="320.0" y1="54.4" x2="320.0" y2="345.6" fill="none" stroke="#d8f05a" stroke-width="5" stroke-linecap="round"/>
+</svg>

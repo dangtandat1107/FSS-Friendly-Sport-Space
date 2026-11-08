@@ -30,7 +30,9 @@ public class CourtsController : Controller
     {
         var court = await _db.Courts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
         if (court == null) return NotFound();
-        var d = (date ?? DateTime.Today).Date;
+        // Không chọn ngày: mặc định là hôm nay, trừ khi hôm nay đã hết khung giờ cuối thì hiện ngày mai
+        var lastSlotStart = DateTime.Today.AddHours(IBookingService.CloseHour - 1);
+        var d = date?.Date ?? (DateTime.Now > lastSlotStart ? DateTime.Today.AddDays(1) : DateTime.Today);
         return View(new CourtDetailsVm { Court = court, Date = d, BusyHours = await _bookings.GetBusyHoursAsync(id, d) });
     }
 

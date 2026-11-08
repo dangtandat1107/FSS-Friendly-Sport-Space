@@ -1,24 +1,40 @@
 @model List<Court>
-@{ ViewData["Title"] = "Tìm sân"; }
-<form method="get" class="row g-2 mb-4">
-  <div class="col-md-3"><select name="sport" class="form-select">
-    <option value="">Tất cả môn</option>
-    @foreach (var s in Enum.GetValues<SportType>()) { <option value="@s" selected="@((SportType?)ViewData["Sport"] == s)">@s.DisplayName()</option> }
-  </select></div>
-  <div class="col-md-4"><input name="district" class="form-control" placeholder="Quận (vd: Quận 1)" value="@ViewData["District"]" /></div>
-  <div class="col-md-2"><button class="btn btn-success w-100">Tìm</button></div>
-</form>
-<div class="row">
-@foreach (var c in Model)
-{
-  <div class="col-md-4 mb-3"><div class="card h-100"><div class="card-body">
-    <h5 class="card-title">@c.Name</h5>
-    <p class="mb-1">@c.SportType.DisplayName() · @c.District</p>
-    <p class="text-muted small">@c.Address</p>
-    <p class="fw-bold">@c.PricePerHour.ToString("N0") đ/giờ</p>
-    @if (c.Status == CourtStatus.Maintenance) { <span class="badge bg-warning text-dark">Bảo trì</span> }
-    <a class="btn btn-outline-success btn-sm float-end" asp-action="Details" asp-route-id="@c.Id">Xem lịch</a>
-  </div></div></div>
+@{
+    ViewData["Title"] = "Tìm sân";
+    var current = (SportType?)ViewData["Sport"];
+    var district = (string?)ViewData["District"];
 }
-@if (!Model.Any()) { <p class="text-muted">Không tìm thấy sân phù hợp.</p> }
+<h3 class="mb-3">Tìm sân</h3>
+
+<div class="d-flex flex-wrap gap-2 mb-3">
+  <a class="chip @(current == null ? "active" : "")" asp-action="Index" asp-route-district="@district">Tất cả môn</a>
+  @foreach (var s in SportInfo.All)
+  {
+    var m = s.Meta();
+    <a class="chip @(current == s ? "active" : "")" style="--chip:@m.Color" asp-action="Index" asp-route-sport="@s" asp-route-district="@district">@m.Label</a>
+  }
 </div>
+
+<form method="get" class="d-flex gap-2 mb-4" style="max-width:32rem">
+  @if (current != null) { <input type="hidden" name="sport" value="@current" /> }
+  <input name="district" class="form-control" placeholder="Lọc theo quận, ví dụ Quận 1" value="@district" aria-label="Quận" />
+  <button class="btn btn-success">Lọc</button>
+</form>
+
+@if (Model.Any())
+{
+  <div class="row g-3">
+    @foreach (var c in Model)
+    {
+      <div class="col-md-6 col-lg-4">@await Html.PartialAsync("_CourtCard", c)</div>
+    }
+  </div>
+}
+else
+{
+  <div class="panel-card p-4">
+    <h5>Chưa có sân phù hợp</h5>
+    <p class="text-muted mb-3">Thử bỏ bộ lọc quận hoặc chọn môn khác để xem thêm sân.</p>
+    <a class="btn btn-outline-success" asp-action="Index">Xem tất cả sân</a>
+  </div>
+}

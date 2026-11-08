@@ -1,13 +1,17 @@
 @model CourtFormVm
 @{ ViewData["Title"] = Model.Id == 0 ? "Thêm sân" : "Sửa sân"; }
-<h3>@ViewData["Title"]</h3>
-<form method="post" class="col-md-6">
-  <input type="hidden" asp-for="Id" />
-  <div asp-validation-summary="All" class="text-danger"></div>
-  <div class="mb-3"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" /></div>
-  <div class="mb-3"><label class="form-label" asp-for="SportType"></label><select class="form-select" asp-for="SportType" asp-items="Html.GetEnumSelectList<SportType>()"></select></div>
-  <div class="mb-3"><label class="form-label" asp-for="District"></label><input class="form-control" asp-for="District" /></div>
-  <div class="mb-3"><label class="form-label" asp-for="Address"></label><input class="form-control" asp-for="Address" /></div>
-  <div class="mb-3"><label class="form-label" asp-for="PricePerHour"></label><input class="form-control" asp-for="PricePerHour" /></div>
-  <button class="btn btn-success">Lưu</button> <a class="btn btn-link" asp-action="Manage">Hủy</a>
-</form>
+<div class="row"><div class="col-lg-6">
+  <div class="panel-card p-4">
+    <h4 class="mb-3">@ViewData["Title"]</h4>
+    <form method="post">
+      <input type="hidden" asp-for="Id" />
+      <div asp-validation-summary="All" class="text-danger"></div>
+      <div class="mb-3"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" /></div>
+      <div class="mb-3"><label class="form-label" asp-for="SportType"></label><select class="form-select" asp-for="SportType" asp-items="Html.GetEnumSelectList<SportType>()"></select></div>
+      <div class="mb-3"><label class="form-label" asp-for="District"></label><input class="form-control" asp-for="District" /></div>
+      <div class="mb-3"><label class="form-label" asp-for="Address"></label><input class="form-control" asp-for="Address" /></div>
+      <div class="mb-3"><label class="form-label" asp-for="PricePerHour"></label><input class="form-control" asp-for="PricePerHour" /></div>
+      <button class="btn btn-success">Lưu sân</button> <a class="btn btn-link" asp-action="Manage">Hủy</a>
+    </form>
+  </div>
+</div></div>

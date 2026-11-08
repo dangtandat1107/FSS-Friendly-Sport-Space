@@ -1,6 +1,6 @@
 # FSS - Friendly Sport Space
 
-Hệ thống đặt lịch sân thể thao (cầu lông, bóng đá, tennis) - Đồ án chuyên ngành Công nghệ phần mềm tích hợp AI, HUTECH.
+Hệ thống đặt lịch sân thể thao (cầu lông, bóng đá, tennis, pickleball, bóng rổ) - Đồ án chuyên ngành Công nghệ phần mềm tích hợp AI, HUTECH.
 
 > Trạng thái: **đang phát triển**. Hiện đã hoàn thành phần nghiệp vụ lõi (Giai đoạn 1). Phần AI sẽ được bổ sung ở các giai đoạn sau.
 
@@ -41,8 +41,8 @@ Dự kiến tuần 4: hoàn thiện ERD, vẽ Use Case (StarUML), unit test cho 
 **Khách hàng**
 - Đăng ký, đăng nhập, quên mật khẩu bằng mã xác nhận gửi qua email, đổi mật khẩu
 - Trang hồ sơ cá nhân: sửa họ tên, số điện thoại, xem thống kê và lịch sắp tới
-- Tìm sân theo môn và quận, xem lịch trống theo ngày, đặt sân, hủy lịch (trước giờ chơi ít nhất 2 giờ)
-- Thanh toán giả lập (chuyển khoản ngân hàng hoặc MoMo), giữ chỗ 15 phút, thanh toán xong lịch tự động xác nhận
+- Giao diện theo từng môn (màu và hình mặt sân riêng), tìm sân theo môn và quận, xem lịch trống theo ngày, đặt sân, hủy lịch (trước giờ chơi ít nhất 2 giờ)
+- Thanh toán chuyển khoản qua mã VietQR (tự điền số tiền và nội dung), giữ chỗ 15 phút. Khách báo đã chuyển khoản, chủ sân đối chiếu tài khoản ngân hàng rồi xác nhận
 
 **Chủ sân**
 - Thêm, sửa sân, đổi trạng thái bảo trì
@@ -111,10 +111,10 @@ Không commit mật khẩu hay file `.env` lên GitHub. Nếu chưa cấu hình,
 Mặc định trang thanh toán hiển thị dữ liệu minh họa. Muốn thử với tài khoản thật, đặt trong User Secrets (chạy local) hoặc file `.env` (Docker), không ghi vào code:
 
 ```json
-{ "Payment": { "Bank": { "BankName": "...", "AccountNumber": "...", "AccountName": "...", "QrImage": "/payment/bank-qr.png" } } }
+{ "Payment": { "Bank": { "BankName": "...", "BankBin": "...", "AccountNumber": "...", "AccountName": "..." } } }
 ```
 
-Ảnh mã QR đặt tại `src/SportBooking.Web/wwwroot/payment/bank-qr.png` (thư mục này nằm trong `.gitignore`). Hệ thống chỉ mô phỏng thanh toán và không tự đối soát tiền thật.
+`BankBin` là mã BIN của ngân hàng (ví dụ Vietcombank là 970436), dùng để tạo mã VietQR động. Hệ thống **không tự đối soát** tiền vào tài khoản: chủ sân đối chiếu và bấm xác nhận trong mục Duyệt lịch.
 
 ## Cấu trúc thư mục
 ```

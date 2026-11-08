@@ -1,0 +1,18 @@
+@model Court
+@{ var m = Model.SportType.Meta(); }
+<article class="court-card" style="--sport:@m.Color">
+  <div class="thumb">
+    <img src="@m.Image" alt="Sân @m.Label" loading="lazy" />
+    <span class="price">@Model.PricePerHour.ToString("N0") đ/giờ</span>
+  </div>
+  <div class="p-3 d-flex flex-column flex-grow-1">
+    <div class="small fw-semibold" style="color:var(--sport)">@m.Label</div>
+    <h5 class="mb-1">@Model.Name</h5>
+    <div class="text-muted small">@Model.District, @Model.Address</div>
+    <div class="mt-auto pt-3 d-flex align-items-center justify-content-between">
+      @if (Model.Status == CourtStatus.Maintenance) { <span class="badge bg-warning text-dark">Đang bảo trì</span> }
+      else { <span class="small text-muted">Đang mở đặt</span> }
+      <a class="btn btn-sm btn-outline-success" asp-controller="Courts" asp-action="Details" asp-route-id="@Model.Id">Xem lịch trống</a>
+    </div>
+  </div>
+</article>
