@@ -1,34 +1,40 @@
-@model Booking
-@{ ViewData["Title"] = "Thanh toán"; }
+@model PayVm
+@{
+    ViewData["Title"] = "Thanh toán";
+    var b = Model.Booking;
+}
 <div class="row justify-content-center"><div class="col-lg-6">
   <div class="card panel-card"><div class="card-body p-4">
     <h4 class="mb-3">Thanh toán đặt sân</h4>
 
-    @if (Model.ExpiresAt != null)
+    @if (b.ExpiresAt != null)
     {
-      <div class="alert alert-warning">Chỗ của bạn được giữ đến <b>@(Model.ExpiresAt?.ToString("HH:mm"))</b>. Quá giờ này mà chưa thanh toán, lịch sẽ tự hết hiệu lực.</div>
+      <div class="alert alert-warning">Chỗ của bạn được giữ đến <b>@(b.ExpiresAt?.ToString("HH:mm"))</b>. Quá giờ này mà chưa thanh toán, lịch sẽ tự hết hiệu lực.</div>
     }
 
     <table class="table table-sm">
-      <tr><th style="width:35%">Sân</th><td>@Model.Court?.Name</td></tr>
-      <tr><th>Thời gian</th><td>@Model.StartTime.ToString("dd/MM/yyyy HH:mm") - @Model.EndTime.ToString("HH:mm")</td></tr>
-      <tr><th>Tổng tiền</th><td class="fw-bold">@Model.TotalPrice.ToString("N0") đ</td></tr>
+      <tr><th style="width:35%">Sân</th><td>@b.Court?.Name</td></tr>
+      <tr><th>Thời gian</th><td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td></tr>
+      <tr><th>Tổng tiền</th><td class="fw-bold">@b.TotalPrice.ToString("N0") đ</td></tr>
     </table>
 
     <form asp-action="Start" method="post">
-      <input type="hidden" name="bookingId" value="@Model.Id" />
+      <input type="hidden" name="bookingId" value="@b.Id" />
       <label class="form-label fw-semibold">Chọn phương thức thanh toán</label>
 
       <label class="d-flex align-items-center gap-3 border p-3 mb-2 method-card" for="m-bank">
         <input class="form-check-input mt-0" type="radio" name="method" id="m-bank" value="BankTransfer" checked />
-        <div><div class="fw-semibold">Chuyển khoản ngân hàng</div><div class="small text-muted">Quét mã QR hoặc nhập số tài khoản</div></div>
+        <div><div class="fw-semibold">Chuyển khoản ngân hàng</div><div class="small text-muted">Quét mã QR bằng app ngân hàng, số tiền và nội dung được điền sẵn</div></div>
       </label>
-      <label class="d-flex align-items-center gap-3 border p-3 mb-3 method-card" for="m-momo">
-        <input class="form-check-input mt-0" type="radio" name="method" id="m-momo" value="Momo" />
-        <div><div class="fw-semibold">Ví MoMo</div><div class="small text-muted">Thanh toán nhanh bằng ví điện tử</div></div>
-      </label>
+      @if (Model.MomoAvailable)
+      {
+        <label class="d-flex align-items-center gap-3 border p-3 mb-3 method-card" for="m-momo">
+          <input class="form-check-input mt-0" type="radio" name="method" id="m-momo" value="Momo" />
+          <div><div class="fw-semibold">Ví MoMo</div><div class="small text-muted">Chuyển tiền qua ví điện tử</div></div>
+        </label>
+      }
 
-      <button class="btn btn-success w-100">Tiếp tục</button>
+      <button class="btn btn-success w-100 mt-2">Tiếp tục</button>
     </form>
     <div class="text-center mt-3"><a asp-controller="Bookings" asp-action="My">Để sau, về lịch của tôi</a></div>
   </div></div>

@@ -1,26 +1,64 @@
 @model List<Booking>
-@{ ViewData["Title"] = "Duyệt lịch"; }
+@{
+    ViewData["Title"] = "Quản lý lịch đặt";
+    var awaitingList = Model
+        .SelectMany(b => b.Payments.Where(p => p.Status == PaymentStatus.AwaitingConfirmation).Select(p => new { Booking = b, Payment = p }))
+        .OrderBy(x => x.Payment.CreatedAt).ToList();
+}
 <h3>Quản lý lịch đặt</h3>
+
+@if (awaitingList.Any())
+{
+  <div class="card border-warning mb-4"><div class="card-body">
+    <h5 class="mb-1">Chờ xác nhận chuyển khoản (@awaitingList.Count)</h5>
+    <div class="small text-muted mb-3">Mở app ngân hàng, đối chiếu số tiền và nội dung chuyển khoản rồi bấm xác nhận.</div>
+    <table class="table align-middle mb-0">
+      <tr><th>Khách</th><th>Sân</th><th>Thời gian</th><th>Số tiền</th><th>Nội dung CK</th><th></th></tr>
+      @foreach (var x in awaitingList)
+      {
+        <tr>
+          <td>@x.Booking.Customer?.FullName</td>
+          <td>@x.Booking.Court?.Name</td>
+          <td>@x.Booking.StartTime.ToString("dd/MM HH:mm") - @x.Booking.EndTime.ToString("HH:mm")</td>
+          <td class="fw-semibold">@x.Payment.Amount.ToString("N0")</td>
+          <td><code>@x.Payment.TransactionCode</code></td>
+          <td class="text-end">
+            <form asp-controller="Payments" asp-action="Confirm" method="post" class="d-inline">
+              <input type="hidden" name="paymentId" value="@x.Payment.Id" />
+              <button class="btn btn-sm btn-success">Đã nhận tiền</button>
+            </form>
+            <form asp-controller="Payments" asp-action="Reject" method="post" class="d-inline">
+              <input type="hidden" name="paymentId" value="@x.Payment.Id" />
+              <button class="btn btn-sm btn-outline-danger">Chưa nhận được</button>
+            </form>
+          </td>
+        </tr>
+      }
+    </table>
+  </div></div>
+}
+
 <table class="table align-middle">
 <tr><th>Sân</th><th>Khách</th><th>Thời gian</th><th>Tiền</th><th>Trạng thái</th><th>Thanh toán</th><th></th></tr>
 @foreach (var b in Model)
 {
   var paid = b.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Paid);
+  var awaiting = b.Payments.Any(p => p.Status == PaymentStatus.AwaitingConfirmation);
   <tr>
     <td>@b.Court?.Name</td>
     <td>@b.Customer?.FullName</td>
     <td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td>
     <td>@b.TotalPrice.ToString("N0")</td>
-    <td>@(b.IsExpired ? "Hết hạn thanh toán" : b.Status.DisplayName())</td>
-    <td>@(paid != null ? paid.Method.DisplayName() : "-")</td>
+    <td>@(b.Status == BookingStatus.Pending && b.IsExpired && !awaiting ? "Hết hạn thanh toán" : b.Status.DisplayName())</td>
+    <td>@(paid != null ? paid.Method.DisplayName() : awaiting ? "Chờ xác nhận" : "-")</td>
     <td class="text-end">
-      @if (b.Status == BookingStatus.Pending && !b.IsExpired)
+      @if (b.Status == BookingStatus.Pending && (!b.IsExpired || awaiting))
       {
         <form asp-action="SetStatus" asp-route-id="@b.Id" asp-route-status="@BookingStatus.Confirmed" method="post" class="d-inline">
-          <button class="btn btn-sm btn-success" title="Dùng khi khách trả tiền mặt tại sân">Xác nhận thủ công</button>
+          <button class="btn btn-sm btn-outline-success" title="Dùng khi khách trả tiền mặt tại sân">Xác nhận thủ công</button>
         </form>
       }
-      @if (b.Status != BookingStatus.Cancelled && !b.IsExpired)
+      @if (b.Status != BookingStatus.Cancelled && (!b.IsExpired || awaiting))
       {
         <form asp-action="SetStatus" asp-route-id="@b.Id" asp-route-status="@BookingStatus.Cancelled" method="post" class="d-inline">
           <button class="btn btn-sm btn-outline-danger">Hủy lịch</button>

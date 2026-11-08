@@ -1,40 +1,34 @@
-@inject Microsoft.Extensions.Options.IOptions<PaymentOptions> PayOpt
-@inject Microsoft.AspNetCore.Hosting.IWebHostEnvironment Env
-@model Payment
+@model GatewayVm
 @{
-    ViewData["Title"] = "Cổng thanh toán";
-    var isMomo = Model.Method == PaymentMethod.Momo;
-    var acct = isMomo ? PayOpt.Value.Momo : PayOpt.Value.Bank;
-
-    string Or(string? v, string fallback) => string.IsNullOrWhiteSpace(v) ? fallback : v;
-
-    var isDemo = string.IsNullOrWhiteSpace(acct.AccountNumber);
-    var bankName = Or(acct.BankName, isMomo ? "Ví MoMo" : "Ngân hàng minh họa");
-    var accountNo = Or(acct.AccountNumber, isMomo ? "0900 000 000" : "0123456789");
-    var accountName = Or(acct.AccountName, "FSS SPORT SPACE");
-    var hasQr = !string.IsNullOrWhiteSpace(acct.QrImage) && Env.WebRootFileProvider.GetFileInfo(acct.QrImage).Exists;
+    ViewData["Title"] = "Chuyển khoản";
+    var p = Model.Payment;
+    var isMomo = p.Method == PaymentMethod.Momo;
+    var awaiting = p.Status == PaymentStatus.AwaitingConfirmation;
 }
 <div class="row justify-content-center"><div class="col-lg-6">
-  @if (hasQr)
+
+  @if (awaiting)
   {
-    <div class="alert alert-warning">
-      <b>Đang dùng tài khoản thật để thử nghiệm.</b> Hệ thống <b>không tự đối soát</b> tiền chuyển vào. Sau khi chuyển (hoặc không chuyển), bấm nút "Giả lập" bên dưới để hoàn tất.
-    </div>
+    <div class="alert alert-info"><b>Đã ghi nhận.</b> Đang chờ chủ sân kiểm tra và xác nhận đã nhận tiền. Bạn sẽ thấy lịch chuyển sang "Đã xác nhận" trong mục Lịch của tôi.</div>
   }
-  else
+  else if (Model.IsDemo)
   {
-    <div class="alert alert-info">
-      <b>Cổng thanh toán GIẢ LẬP.</b> Không có tiền thật nào được chuyển. Dùng hai nút bên dưới để mô phỏng kết quả thanh toán.
-    </div>
+    <div class="alert alert-info"><b>Chế độ minh họa.</b> Chưa cấu hình tài khoản nhận tiền. Khi demo, chủ sân (owner@demo.com) vào mục Duyệt lịch để xác nhận.</div>
   }
 
   <div class="card panel-card"><div class="card-body p-4">
-    <h4 class="mb-3">@Model.Method.DisplayName()</h4>
+    <h4 class="mb-3">@p.Method.DisplayName()</h4>
 
     <div class="text-center mb-3">
-      @if (hasQr)
+      @if (Model.QrKind == QrKind.Dynamic)
       {
-        <img src="@acct.QrImage" alt="Mã QR thanh toán" style="width:220px;height:220px;" />
+        <img src="@Model.QrDataUri" alt="Mã QR chuyển khoản đến @Model.BankName" style="width:240px;height:240px;" />
+        <div class="small text-muted mt-1">Quét bằng app của bất kỳ ngân hàng nào, tiền sẽ vào tài khoản <b>@Model.BankName</b> của @Model.AccountName. Số tiền và nội dung đã được điền sẵn.</div>
+        <div class="small text-muted">Mã theo chuẩn VietQR (NAPAS 247).</div>
+      }
+      else if (Model.QrKind == QrKind.Static)
+      {
+        <img src="@Model.QrImagePath" alt="Mã QR thanh toán" style="width:220px;height:220px;" />
         <div class="small text-muted mt-1">Mã QR chưa gắn sẵn số tiền, hãy nhập đúng số tiền và nội dung bên dưới.</div>
       }
       else
@@ -44,31 +38,31 @@
     </div>
 
     <table class="table">
-      <tr><th style="width:35%">@(isMomo ? "Ví nhận" : "Ngân hàng")</th><td>@bankName</td></tr>
-      <tr><th>@(isMomo ? "Số điện thoại" : "Số tài khoản")</th><td>@accountNo</td></tr>
-      <tr><th>Chủ tài khoản</th><td>@accountName</td></tr>
-      <tr><th>Số tiền</th><td class="fw-bold">@Model.Amount.ToString("N0") đ</td></tr>
-      <tr><th>Nội dung</th><td><code>@Model.TransactionCode</code></td></tr>
-      <tr><th>Sân</th><td>@(Model.Booking?.Court?.Name)</td></tr>
-      <tr><th>Thời gian</th><td>@(Model.Booking?.StartTime.ToString("dd/MM/yyyy HH:mm")) - @(Model.Booking?.EndTime.ToString("HH:mm"))</td></tr>
-      @if (Model.Booking?.ExpiresAt != null)
+      <tr><th style="width:35%">@(isMomo ? "Ví nhận" : "Ngân hàng")</th><td>@Model.BankName</td></tr>
+      <tr><th>@(isMomo ? "Số điện thoại" : "Số tài khoản")</th><td>@Model.AccountNo</td></tr>
+      <tr><th>Chủ tài khoản</th><td>@Model.AccountName</td></tr>
+      <tr><th>Số tiền</th><td class="fw-bold">@p.Amount.ToString("N0") đ</td></tr>
+      <tr><th>Nội dung</th><td><code>@p.TransactionCode</code></td></tr>
+      <tr><th>Sân</th><td>@(p.Booking?.Court?.Name)</td></tr>
+      <tr><th>Thời gian</th><td>@(p.Booking?.StartTime.ToString("dd/MM/yyyy HH:mm")) - @(p.Booking?.EndTime.ToString("HH:mm"))</td></tr>
+      @if (p.Booking?.ExpiresAt != null)
       {
-        <tr><th>Hạn thanh toán</th><td>@(Model.Booking?.ExpiresAt?.ToString("HH:mm"))</td></tr>
+        <tr><th>@(awaiting ? "Giữ chỗ đến" : "Hạn thanh toán")</th><td>@(p.Booking?.ExpiresAt?.ToString("HH:mm"))</td></tr>
       }
     </table>
 
-    <div class="d-flex gap-2">
-      <form asp-action="Complete" method="post" class="flex-fill">
-        <input type="hidden" name="paymentId" value="@Model.Id" />
-        <input type="hidden" name="success" value="true" />
-        <button class="btn btn-success w-100">Giả lập: thanh toán thành công</button>
+    @if (!awaiting)
+    {
+      <form asp-action="ReportTransfer" method="post">
+        <input type="hidden" name="paymentId" value="@p.Id" />
+        <button class="btn btn-success w-100">Tôi đã chuyển khoản</button>
       </form>
-      <form asp-action="Complete" method="post" class="flex-fill">
-        <input type="hidden" name="paymentId" value="@Model.Id" />
-        <input type="hidden" name="success" value="false" />
-        <button class="btn btn-outline-danger w-100">Giả lập: thất bại</button>
-      </form>
-    </div>
-    <div class="text-center mt-3"><a asp-action="Pay" asp-route-bookingId="@Model.BookingId">Đổi phương thức</a></div>
+      <div class="small text-muted mt-2">Chỉ bấm sau khi bạn đã chuyển tiền. Chủ sân sẽ đối chiếu với tài khoản ngân hàng rồi xác nhận.</div>
+      <div class="text-center mt-3"><a asp-action="Pay" asp-route-bookingId="@p.BookingId">Đổi phương thức</a></div>
+    }
+    else
+    {
+      <a class="btn btn-outline-success w-100" asp-controller="Bookings" asp-action="My">Về lịch của tôi</a>
+    }
   </div></div>
 </div></div>

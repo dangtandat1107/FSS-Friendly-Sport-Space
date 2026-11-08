@@ -6,31 +6,38 @@
 @foreach (var b in Model)
 {
   var paid = b.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Paid);
+  var awaiting = b.Payments.FirstOrDefault(p => p.Status == PaymentStatus.AwaitingConfirmation);
   <tr>
     <td>@b.Court?.Name</td>
     <td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td>
     <td>@b.TotalPrice.ToString("N0")</td>
     <td>
-      @if (b.IsExpired) { <span class="badge bg-secondary">Hết hạn thanh toán</span> }
-      else if (b.Status == BookingStatus.Pending)
+      @if (b.Status == BookingStatus.Cancelled) { <span class="badge bg-secondary">Đã hủy</span> }
+      else if (b.Status == BookingStatus.Confirmed) { <span class="badge bg-success">Đã xác nhận</span> }
+      else if (awaiting != null) { <span class="badge bg-info text-dark">Chờ chủ sân xác nhận</span> }
+      else if (b.IsExpired) { <span class="badge bg-secondary">Hết hạn thanh toán</span> }
+      else
       {
         <span class="badge bg-warning text-dark">Chờ thanh toán</span>
         @if (b.ExpiresAt != null) { <div class="small text-muted">Hạn @(b.ExpiresAt?.ToString("HH:mm"))</div> }
       }
-      else if (b.Status == BookingStatus.Confirmed) { <span class="badge bg-success">Đã xác nhận</span> }
-      else { <span class="badge bg-secondary">Đã hủy</span> }
     </td>
     <td>
       @if (paid != null) { <div>@paid.Method.DisplayName()</div><div class="small text-muted">@paid.TransactionCode</div> }
+      else if (awaiting != null) { <div>@awaiting.Method.DisplayName()</div><div class="small text-muted">@awaiting.TransactionCode</div> }
       else if (b.Payments.Any(p => p.Status == PaymentStatus.Refunded)) { <span class="text-muted">Đã hoàn tiền</span> }
       else { <span class="text-muted">-</span> }
     </td>
     <td class="text-end">
-      @if (b.Status == BookingStatus.Pending && !b.IsExpired)
+      @if (awaiting != null && b.Status == BookingStatus.Pending)
+      {
+        <a class="btn btn-sm btn-outline-success" asp-controller="Payments" asp-action="Gateway" asp-route-id="@awaiting.Id">Xem</a>
+      }
+      else if (b.Status == BookingStatus.Pending && !b.IsExpired)
       {
         <a class="btn btn-sm btn-success" asp-controller="Payments" asp-action="Pay" asp-route-bookingId="@b.Id">Thanh toán</a>
       }
-      @if (b.Status != BookingStatus.Cancelled && !b.IsExpired && b.StartTime > DateTime.Now)
+      @if (b.Status != BookingStatus.Cancelled && (awaiting != null || !b.IsExpired) && b.StartTime > DateTime.Now)
       {
         <form asp-action="Cancel" asp-route-id="@b.Id" method="post" class="d-inline">
           <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Hủy lịch này?')">Hủy</button>

@@ -5,7 +5,9 @@ public enum SportType
 {
     [Display(Name = "Cầu lông")] Badminton,
     [Display(Name = "Bóng đá")] Football,
-    [Display(Name = "Tennis")] Tennis
+    [Display(Name = "Tennis")] Tennis,
+    [Display(Name = "Pickleball")] Pickleball,
+    [Display(Name = "Bóng rổ")] Basketball
 }
 
 public enum CourtStatus
@@ -33,5 +35,6 @@ public enum PaymentStatus
     [Display(Name = "Đã thanh toán")] Paid,
     [Display(Name = "Thất bại")] Failed,
     [Display(Name = "Đã hủy")] Cancelled,
-    [Display(Name = "Đã hoàn tiền")] Refunded
+    [Display(Name = "Đã hoàn tiền")] Refunded,
+    [Display(Name = "Chờ chủ sân xác nhận")] AwaitingConfirmation
 }

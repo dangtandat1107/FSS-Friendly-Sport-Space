@@ -7,3 +7,6 @@ obj/
 
 # Mã QR và thông tin tài khoản thật, không đưa lên GitHub
 src/SportBooking.Web/wwwroot/payment/
+
+# Tệp sao lưu do Visual Studio tạo
+*.csproj.Backup*

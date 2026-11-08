@@ -51,9 +51,13 @@ public class BookingsController : Controller
         }
 
         var hadPaid = b.Payments.Any(p => p.Status == PaymentStatus.Paid);
+        var hadAwaiting = b.Payments.Any(p => p.Status == PaymentStatus.AwaitingConfirmation);
         ApplyCancel(b);
         await _db.SaveChangesAsync();
-        TempData["Msg"] = hadPaid ? "Đã hủy lịch. Khoản thanh toán được ghi nhận hoàn tiền (giả lập)." : "Đã hủy lịch.";
+
+        TempData["Msg"] = hadPaid ? "Đã hủy lịch. Khoản thanh toán được ghi nhận hoàn tiền."
+            : hadAwaiting ? "Đã hủy lịch. Nếu bạn đã chuyển tiền, hãy liên hệ chủ sân để được hoàn lại."
+            : "Đã hủy lịch.";
         return RedirectToAction(nameof(My));
     }
 
@@ -74,18 +78,27 @@ public class BookingsController : Controller
         if (b == null) return NotFound();
 
         if (status == BookingStatus.Cancelled) ApplyCancel(b);
-        else if (status == BookingStatus.Confirmed) b.Status = BookingStatus.Confirmed;   // xác nhận thủ công (ví dụ khách trả tiền mặt tại sân)
+        else if (status == BookingStatus.Confirmed)
+        {
+            // Xác nhận thủ công (ví dụ khách trả tiền mặt tại sân). Giao dịch đang chờ xác nhận coi như đã nhận tiền.
+            b.Status = BookingStatus.Confirmed;
+            foreach (var p in b.Payments.Where(p => p.Status == PaymentStatus.AwaitingConfirmation))
+            {
+                p.Status = PaymentStatus.Paid;
+                p.PaidAt = DateTime.Now;
+            }
+        }
         await _db.SaveChangesAsync();
         return RedirectToAction(nameof(Manage));
     }
 
-    // Hủy lịch: giao dịch đang chờ thì hủy, giao dịch đã trả thì ghi nhận hoàn tiền (giả lập)
+    // Hủy lịch: giao dịch đang chờ thì hủy, giao dịch đã trả thì ghi nhận hoàn tiền
     private static void ApplyCancel(Booking b)
     {
         b.Status = BookingStatus.Cancelled;
         foreach (var p in b.Payments)
         {
-            if (p.Status == PaymentStatus.Pending) p.Status = PaymentStatus.Cancelled;
+            if (p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.AwaitingConfirmation) p.Status = PaymentStatus.Cancelled;
             else if (p.Status == PaymentStatus.Paid) p.Status = PaymentStatus.Refunded;
         }
     }
