@@ -1,5 +1,6 @@
 @{
     var fullName = User.FindFirst("FullName")?.Value ?? User.Identity?.Name ?? "";
+    var avatarUrl = User.FindFirst("Avatar")?.Value;
     var initial = string.IsNullOrWhiteSpace(fullName) ? "?"
         : fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()[..1].ToUpper();
 }
@@ -43,7 +44,9 @@
         {
           <div class="dropdown">
             <a class="btn btn-sm btn-outline-success dropdown-toggle d-flex align-items-center gap-2" href="#" data-bs-toggle="dropdown">
-              <span class="avatar avatar-sm">@initial</span> @fullName
+              @if (avatarUrl != null) { <img class="avatar avatar-sm" src="@avatarUrl" alt="" /> }
+              else { <span class="avatar avatar-sm">@initial</span> }
+              @fullName
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index">Hồ sơ của tôi</a></li>

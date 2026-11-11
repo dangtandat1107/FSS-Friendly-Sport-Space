@@ -107,6 +107,10 @@ Dùng Gmail SMTP với **App Password** của Google (không dùng mật khẩu 
 
 Không commit mật khẩu hay file `.env` lên GitHub. Nếu chưa cấu hình, ở môi trường Development nội dung email (có mã xác nhận) sẽ được ghi ra log.
 
+## Ảnh môn thể thao và ảnh đại diện
+- Mỗi môn có ảnh minh họa mặc định trong `wwwroot/images/sports`. Muốn dùng ảnh thật, đặt ảnh vào cùng thư mục với tên `photo-badminton.jpg`, `photo-football.jpg`, `photo-tennis.jpg`, `photo-pickleball.jpg`, `photo-basketball.jpg` (cũng nhận `.png`, `.webp`). Hệ thống tự ưu tiên ảnh thật. Chỉ dùng ảnh có bản quyền cho phép (ví dụ Unsplash, Pexels, Pixabay).
+- Người dùng đổi ảnh đại diện ở trang hồ sơ (JPG, PNG, WEBP, tối đa 2 MB). Ảnh lưu tại `wwwroot/uploads/avatars` (đã nằm trong `.gitignore`), chạy Docker thì được giữ trong volume `avatars`.
+
 ## Cấu hình tài khoản nhận tiền (thanh toán)
 Mặc định trang thanh toán hiển thị dữ liệu minh họa. Muốn thử với tài khoản thật, đặt trong User Secrets (chạy local) hoặc file `.env` (Docker), không ghi vào code:
 

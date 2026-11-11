@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using SportBooking.Web.Data;
+using SportBooking.Web.Extensions;
 using SportBooking.Web.Models;
 using SportBooking.Web.Services;
 
@@ -38,10 +39,12 @@ builder.Services.AddMemoryCache();
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IVietQrService, VietQrService>();
+builder.Services.AddSingleton<IAvatarService, AvatarService>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddHealthChecks().AddDbContextCheck<AppDbContext>("database");
 
 var app = builder.Build();
+SportInfo.UseWebRoot(app.Environment.WebRootFileProvider);
 
 using (var scope = app.Services.CreateScope())
     await DbSeeder.InitAsync(scope.ServiceProvider);

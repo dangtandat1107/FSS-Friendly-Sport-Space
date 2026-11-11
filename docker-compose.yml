@@ -21,6 +21,8 @@ services:
       Payment__Bank__AccountName: ${BANK_ACCOUNT_NAME:-}
       Payment__Bank__QrImage: ${BANK_QR_IMAGE:-}
     ports: ["8080:8080"]
+    volumes: [avatars:/app/wwwroot/uploads]
 
 volumes:
   sqldata:
+  avatars:

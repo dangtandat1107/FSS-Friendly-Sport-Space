@@ -1,28 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Sân bóng đá nhìn từ trên xuống">
-<title>Sân bóng đá nhìn từ trên xuống</title>
-<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3f8a22"/><stop offset="1" stop-color="#336f1b"/></linearGradient></defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 400" role="img" aria-label="Cầu thủ đang sút bóng">
+<title>Cầu thủ đang sút bóng</title>
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3f8a22"/><stop offset="1" stop-color="#2e6b18"/></linearGradient>
+<radialGradient id="sp" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#d8f05a" stop-opacity=".55"/><stop offset="1" stop-color="#d8f05a" stop-opacity="0"/></radialGradient></defs>
 <rect width="640" height="400" fill="url(#bg)"/>
-<rect x="0.0" y="0.0" width="640.0" height="400.0" fill="#3f8a22"/>
-<rect x="47.0" y="23.2" width="54.6" height="353.6" fill="#4f9d2d"/>
-<rect x="101.6" y="23.2" width="54.6" height="353.6" fill="#5aa832"/>
-<rect x="156.2" y="23.2" width="54.6" height="353.6" fill="#4f9d2d"/>
-<rect x="210.8" y="23.2" width="54.6" height="353.6" fill="#5aa832"/>
-<rect x="265.4" y="23.2" width="54.6" height="353.6" fill="#4f9d2d"/>
-<rect x="320.0" y="23.2" width="54.6" height="353.6" fill="#5aa832"/>
-<rect x="374.6" y="23.2" width="54.6" height="353.6" fill="#4f9d2d"/>
-<rect x="429.2" y="23.2" width="54.6" height="353.6" fill="#5aa832"/>
-<rect x="483.8" y="23.2" width="54.6" height="353.6" fill="#4f9d2d"/>
-<rect x="538.4" y="23.2" width="54.6" height="353.6" fill="#5aa832"/>
-<rect x="47.0" y="23.2" width="546.0" height="353.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<line x1="320.0" y1="23.2" x2="320.0" y2="376.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="320.0" cy="200.0" r="47.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="320.0" cy="200.0" r="2.2" fill="#fff"/>
-<rect x="47.0" y="95.2" width="85.8" height="209.7" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<rect x="47.0" y="152.4" width="28.6" height="95.3" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="104.2" cy="200.0" r="2.2" fill="#fff"/>
-<path d="M 132.8 162.0 A 47.6 47.6 0 0 1 132.8 238.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<rect x="507.2" y="95.2" width="85.8" height="209.7" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<rect x="564.4" y="152.4" width="28.6" height="95.3" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="535.8" cy="200.0" r="2.2" fill="#fff"/>
-<path d="M 507.2 162.0 A 47.6 47.6 0 0 0 507.2 238.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+<g opacity=".24"><rect x="-5.5" y="-0.8" width="651.0" height="421.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><line x1="320.0" y1="-0.8" x2="320.0" y2="420.8" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><circle cx="320.0" cy="210.0" r="56.7" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><rect x="-5.5" y="85.0" width="102.3" height="250.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><rect x="-5.5" y="153.2" width="34.1" height="113.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><rect x="543.2" y="85.0" width="102.3" height="250.0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/><rect x="611.4" y="153.2" width="34.1" height="113.6" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/></g>
+<circle cx="300" cy="220" r="190" fill="url(#sp)"/>
+<ellipse cx="300" cy="334" rx="95" ry="12" fill="#000" opacity=".22"/>
+<g transform="translate(252.8 103.80000000000001) scale(1.18)"><line x1="-12.0" y1="40.0" x2="-34.0" y2="58.0" stroke="#ffd23f" stroke-width="16" stroke-linecap="round"/><line x1="-34.0" y1="58.0" x2="-54.0" y2="72.0" stroke="#c68642" stroke-width="12" stroke-linecap="round"/><circle cx="-54.0" cy="72.0" r="7.5" fill="#c68642"/><line x1="0.0" y1="96.0" x2="-6.0" y2="142.0" stroke="#10241c" stroke-width="23" stroke-linecap="round"/><line x1="-6.0" y1="142.0" x2="-10.0" y2="188.0" stroke="#c68642" stroke-width="15" stroke-linecap="round"/><line x1="-10.0" y1="188.0" x2="4.0" y2="192.0" stroke="#fff" stroke-width="13" stroke-linecap="round"/><polygon points="-12.0,40.0 12.0,40.0 9.0,96.0 -9.0,96.0" fill="#ffd23f" stroke="#ffd23f" stroke-width="16" stroke-linejoin="round"/><line x1="-9.0" y1="96.0" x2="9.0" y2="96.0" stroke="#10241c" stroke-width="24" stroke-linecap="round"/><line x1="0.0" y1="96.0" x2="32.0" y2="126.0" stroke="#10241c" stroke-width="23" stroke-linecap="round"/><line x1="32.0" y1="126.0" x2="66.0" y2="146.0" stroke="#c68642" stroke-width="15" stroke-linecap="round"/><line x1="66.0" y1="146.0" x2="82.0" y2="150.0" stroke="#fff" stroke-width="13" stroke-linecap="round"/><line x1="12.0" y1="40.0" x2="34.0" y2="52.0" stroke="#ffd23f" stroke-width="16" stroke-linecap="round"/><line x1="34.0" y1="52.0" x2="56.0" y2="40.0" stroke="#c68642" stroke-width="12" stroke-linecap="round"/><circle cx="56.0" cy="40.0" r="7.5" fill="#c68642"/><line x1="0.0" y1="28.0" x2="-2.0" y2="10.0" stroke="#c68642" stroke-width="11" stroke-linecap="round"/><circle cx="-2.0" cy="10.0" r="16" fill="#c68642"/><path d="M -18.0 9.0 A 16 16 0 0 1 14.0 9.0 Q 2.0 2.0 -18.0 9.0 Z" fill="#1a1008"/><g transform="translate(86 158)"><circle r="15" fill="#fff" stroke="#10241c" stroke-width="2"/><polygon points="0,-7 7,-2 4,6 -4,6 -7,-2" fill="#10241c"/></g></g>
 </svg>

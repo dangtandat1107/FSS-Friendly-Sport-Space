@@ -10,3 +10,6 @@ src/SportBooking.Web/wwwroot/payment/
 
 # Tệp sao lưu do Visual Studio tạo
 *.csproj.Backup*
+
+# Ảnh đại diện người dùng tải lên
+src/SportBooking.Web/wwwroot/uploads/

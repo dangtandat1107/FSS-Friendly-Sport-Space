@@ -95,6 +95,8 @@ public class ProfilePageVm
     public ChangePasswordVm ChangePassword { get; set; } = new();
     public List<StatItem> Stats { get; set; } = new();
     public List<Booking> Upcoming { get; set; } = new();
+    public List<Court> MyCourts { get; set; } = new();
+    public string? AvatarUrl { get; set; }
 
     public string RoleLabel => Role switch { "Admin" => "Quản trị viên", "Owner" => "Chủ sân", _ => "Khách hàng" };
     public string Initial => string.IsNullOrWhiteSpace(FullName) ? "?"

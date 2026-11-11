@@ -116,3 +116,14 @@ button.slot:hover { background: var(--sport, var(--brand)); color: #fff; }
 .fake-qr-momo { border-color: #be185d; color: #be185d; background: #fdf2f8; }
 .method-card { cursor: pointer; border-radius: 12px; background: #fff; }
 .method-card:hover { background: #f0f7f2; }
+
+/* Ảnh đại diện */
+img.avatar { object-fit: cover; background: var(--mist); }
+.avatar-xl { width: 128px; height: 128px; font-size: 3.6rem; margin: 0 auto; }
+.avatar-wrap { position: relative; width: 128px; }
+.avatar-edit { position: absolute; right: -4px; bottom: -4px; width: 40px; height: 40px; border-radius: 50%; background: var(--lime); color: var(--forest);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid #fff; transition: transform .15s; }
+.avatar-edit:hover { transform: scale(1.08); }
+.avatar-edit:focus-within { outline: 3px solid var(--brand-dark); outline-offset: 2px; }
+.profile-side { position: sticky; top: 1rem; }
+@media (max-width: 991px) { .profile-side { position: static; } }

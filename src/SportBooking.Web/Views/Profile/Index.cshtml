@@ -1,77 +1,167 @@
 @model ProfilePageVm
 @{ ViewData["Title"] = "Hồ sơ của tôi"; }
 
-<div class="profile-hero p-4 mb-4 d-flex align-items-center gap-4 flex-wrap">
-  <div class="avatar">@Model.Initial</div>
-  <div>
-    <h3 class="mb-1">@Model.FullName</h3>
-    <div class="text-muted">@Model.Email</div>
-    <span class="badge bg-success mt-2">@Model.RoleLabel</span>
-  </div>
-</div>
-
-@if (Model.Stats.Any())
-{
-  <div class="row g-3 mb-4">
-    @foreach (var s in Model.Stats)
-    {
-      <div class="col-md"><div class="card stat-card"><div class="card-body">
-        <div class="text-muted small">@s.Label</div><div class="stat-value">@s.Value</div>
-      </div></div></div>
-    }
-  </div>
-}
-
-<div class="card panel-card"><div class="card-body">
-  <ul class="nav nav-tabs mb-4">
-    <li class="nav-item"><button class="nav-link @(Model.ActiveTab == "info" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-info" type="button">Thông tin cá nhân</button></li>
-    <li class="nav-item"><button class="nav-link @(Model.ActiveTab == "password" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-password" type="button">Đổi mật khẩu</button></li>
-    @if (Model.Role == "Customer")
-    {
-      <li class="nav-item"><button class="nav-link @(Model.ActiveTab == "upcoming" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-upcoming" type="button">Lịch sắp tới</button></li>
-    }
-  </ul>
-
-  <div class="tab-content">
-    <div class="tab-pane fade @(Model.ActiveTab == "info" ? "show active" : "")" id="tab-info">
-      <form asp-action="UpdateProfile" method="post" class="col-lg-6">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="mb-3"><label class="form-label">Email</label><input class="form-control" value="@Model.Email" disabled /><div class="form-text">Email dùng để đăng nhập, không thể thay đổi.</div></div>
-        <div class="mb-3"><label class="form-label" asp-for="Edit.FullName"></label><input class="form-control" asp-for="Edit.FullName" /><span asp-validation-for="Edit.FullName" class="text-danger"></span></div>
-        <div class="mb-3"><label class="form-label" asp-for="Edit.PhoneNumber"></label><input class="form-control" asp-for="Edit.PhoneNumber" placeholder="0901234567" /><span asp-validation-for="Edit.PhoneNumber" class="text-danger"></span></div>
-        <button class="btn btn-success">Lưu thay đổi</button>
-      </form>
-    </div>
-
-    <div class="tab-pane fade @(Model.ActiveTab == "password" ? "show active" : "")" id="tab-password">
-      <form asp-action="ChangePassword" method="post" class="col-lg-6">
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <div class="mb-3"><label class="form-label" asp-for="ChangePassword.CurrentPassword"></label><input class="form-control" asp-for="ChangePassword.CurrentPassword" autocomplete="current-password" /><span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger"></span></div>
-        <div class="mb-3"><label class="form-label" asp-for="ChangePassword.NewPassword"></label><input class="form-control" asp-for="ChangePassword.NewPassword" autocomplete="new-password" /><div class="form-text">Ít nhất 6 ký tự, gồm chữ hoa, chữ thường và số.</div><span asp-validation-for="ChangePassword.NewPassword" class="text-danger"></span></div>
-        <div class="mb-3"><label class="form-label" asp-for="ChangePassword.ConfirmPassword"></label><input class="form-control" asp-for="ChangePassword.ConfirmPassword" autocomplete="new-password" /><span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger"></span></div>
-        <button class="btn btn-success">Đổi mật khẩu</button>
-      </form>
-    </div>
-
-    @if (Model.Role == "Customer")
-    {
-      <div class="tab-pane fade @(Model.ActiveTab == "upcoming" ? "show active" : "")" id="tab-upcoming">
-        @if (!Model.Upcoming.Any())
+<div class="row g-4">
+  <!-- Cột trái: ảnh đại diện và thông tin chính -->
+  <div class="col-lg-4">
+    <div class="panel-card p-4 text-center profile-side">
+      <div class="avatar-wrap mx-auto">
+        @if (Model.AvatarUrl != null)
         {
-          <p class="text-muted">Bạn chưa có lịch nào sắp tới. <a asp-controller="Courts" asp-action="Index">Đặt sân ngay</a></p>
+          <img class="avatar avatar-xl" src="@Model.AvatarUrl" alt="Ảnh đại diện" />
         }
         else
         {
-          <table class="table align-middle">
-            <tr><th>Sân</th><th>Thời gian</th><th>Trạng thái</th></tr>
-            @foreach (var b in Model.Upcoming)
-            {
-              <tr><td>@b.Court?.Name</td><td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td><td>@b.Status.DisplayName()</td></tr>
-            }
-          </table>
-          <a asp-controller="Bookings" asp-action="My">Xem tất cả lịch đặt</a>
+          <div class="avatar avatar-xl">@Model.Initial</div>
+        }
+        <form id="avatar-form" asp-action="UploadAvatar" method="post" enctype="multipart/form-data">
+          <label class="avatar-edit" title="Đổi ảnh đại diện">
+            <input type="file" name="avatar" accept="image/jpeg,image/png,image/webp" hidden onchange="uploadAvatar(this)" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+          </label>
+        </form>
+      </div>
+
+      <h3 class="mt-3 mb-0">@Model.FullName</h3>
+      <div class="text-muted">@Model.Email</div>
+      <span class="badge bg-success mt-2">@Model.RoleLabel</span>
+
+      <div class="small text-muted mt-3">Ảnh JPG, PNG hoặc WEBP, tối đa 2 MB.</div>
+      @if (Model.AvatarUrl != null)
+      {
+        <form asp-action="RemoveAvatar" method="post" class="mt-1">
+          <button class="btn btn-sm btn-link text-danger" onclick="return confirm('Xóa ảnh đại diện?')">Xóa ảnh đại diện</button>
+        </form>
+      }
+
+      <hr />
+      <div class="d-grid gap-2">
+        @if (Model.Role == "Customer")
+        {
+          <a class="btn btn-success" asp-controller="Courts" asp-action="Index">Tìm sân để đặt</a>
+          <a class="btn btn-outline-success" asp-controller="Bookings" asp-action="My">Lịch của tôi</a>
+        }
+        else if (Model.Role == "Owner")
+        {
+          <a class="btn btn-success" asp-controller="Bookings" asp-action="Manage">Duyệt lịch đặt</a>
+          <a class="btn btn-outline-success" asp-controller="Courts" asp-action="Manage">Quản lý sân</a>
+        }
+        else
+        {
+          <a class="btn btn-success" asp-controller="Admin" asp-action="Index">Trang quản trị</a>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Cột phải: số liệu và các thẻ -->
+  <div class="col-lg-8">
+    @if (Model.Stats.Any())
+    {
+      <div class="row g-3 mb-4">
+        @foreach (var s in Model.Stats)
+        {
+          <div class="col-sm-6 col-xl"><div class="stat-card p-3 h-100">
+            <div class="text-muted small">@s.Label</div><div class="stat-value">@s.Value</div>
+          </div></div>
         }
       </div>
     }
+
+    <div class="panel-card"><div class="card-body p-4">
+      <ul class="nav nav-tabs mb-4">
+        <li class="nav-item"><button class="nav-link @(Model.ActiveTab == "info" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-info" type="button">Thông tin cá nhân</button></li>
+        <li class="nav-item"><button class="nav-link @(Model.ActiveTab == "password" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-password" type="button">Đổi mật khẩu</button></li>
+        @if (Model.Role == "Customer")
+        {
+          <li class="nav-item"><button class="nav-link @(Model.ActiveTab == "upcoming" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-upcoming" type="button">Lịch sắp tới</button></li>
+        }
+        @if (Model.Role == "Owner")
+        {
+          <li class="nav-item"><button class="nav-link @(Model.ActiveTab == "courts" ? "active" : "")" data-bs-toggle="tab" data-bs-target="#tab-courts" type="button">Sân của tôi</button></li>
+        }
+      </ul>
+
+      <div class="tab-content">
+        <div class="tab-pane fade @(Model.ActiveTab == "info" ? "show active" : "")" id="tab-info">
+          <form asp-action="UpdateProfile" method="post" class="col-lg-8 px-0">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3"><label class="form-label">Email</label><input class="form-control" value="@Model.Email" disabled /><div class="form-text">Email dùng để đăng nhập, không thể thay đổi.</div></div>
+            <div class="mb-3"><label class="form-label" asp-for="Edit.FullName"></label><input class="form-control" asp-for="Edit.FullName" /><span asp-validation-for="Edit.FullName" class="text-danger"></span></div>
+            <div class="mb-3"><label class="form-label" asp-for="Edit.PhoneNumber"></label><input class="form-control" asp-for="Edit.PhoneNumber" placeholder="0901234567" /><span asp-validation-for="Edit.PhoneNumber" class="text-danger"></span></div>
+            <button class="btn btn-success">Lưu thay đổi</button>
+          </form>
+        </div>
+
+        <div class="tab-pane fade @(Model.ActiveTab == "password" ? "show active" : "")" id="tab-password">
+          <form asp-action="ChangePassword" method="post" class="col-lg-8 px-0">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3"><label class="form-label" asp-for="ChangePassword.CurrentPassword"></label><input class="form-control" asp-for="ChangePassword.CurrentPassword" autocomplete="current-password" /><span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger"></span></div>
+            <div class="mb-3"><label class="form-label" asp-for="ChangePassword.NewPassword"></label><input class="form-control" asp-for="ChangePassword.NewPassword" autocomplete="new-password" /><div class="form-text">Ít nhất 6 ký tự, gồm chữ hoa, chữ thường và số.</div><span asp-validation-for="ChangePassword.NewPassword" class="text-danger"></span></div>
+            <div class="mb-3"><label class="form-label" asp-for="ChangePassword.ConfirmPassword"></label><input class="form-control" asp-for="ChangePassword.ConfirmPassword" autocomplete="new-password" /><span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger"></span></div>
+            <button class="btn btn-success">Đổi mật khẩu</button>
+          </form>
+        </div>
+
+        @if (Model.Role == "Customer")
+        {
+          <div class="tab-pane fade @(Model.ActiveTab == "upcoming" ? "show active" : "")" id="tab-upcoming">
+            @if (!Model.Upcoming.Any())
+            {
+              <p class="text-muted">Bạn chưa có lịch nào sắp tới. <a asp-controller="Courts" asp-action="Index">Đặt sân ngay</a></p>
+            }
+            else
+            {
+              <table class="table align-middle">
+                <tr><th>Sân</th><th>Thời gian</th><th>Trạng thái</th></tr>
+                @foreach (var b in Model.Upcoming)
+                {
+                  <tr><td>@b.Court?.Name</td><td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td><td>@b.Status.DisplayName()</td></tr>
+                }
+              </table>
+              <a asp-controller="Bookings" asp-action="My">Xem tất cả lịch đặt</a>
+            }
+          </div>
+        }
+
+        @if (Model.Role == "Owner")
+        {
+          <div class="tab-pane fade @(Model.ActiveTab == "courts" ? "show active" : "")" id="tab-courts">
+            @if (!Model.MyCourts.Any())
+            {
+              <p class="text-muted">Bạn chưa có sân nào. <a asp-controller="Courts" asp-action="Create">Thêm sân đầu tiên</a></p>
+            }
+            else
+            {
+              <table class="table align-middle">
+                <tr><th>Sân</th><th>Môn</th><th>Quận</th><th>Giá mỗi giờ</th><th>Trạng thái</th></tr>
+                @foreach (var c in Model.MyCourts)
+                {
+                  var m = c.SportType.Meta();
+                  <tr>
+                    <td class="fw-semibold">@c.Name</td>
+                    <td><span class="badge" style="background:@m.Color">@m.Label</span></td>
+                    <td>@c.District</td>
+                    <td>@c.PricePerHour.ToString("N0") đ</td>
+                    <td><span class="badge @(c.Status == CourtStatus.Active ? "bg-success" : "bg-warning text-dark")">@c.Status.DisplayName()</span></td>
+                  </tr>
+                }
+              </table>
+              <a asp-controller="Courts" asp-action="Manage">Quản lý sân</a>
+            }
+          </div>
+        }
+      </div>
+    </div></div>
   </div>
-</div></div>
+</div>
+
+<script>
+  // Chọn ảnh xong thì tự gửi lên; chặn sớm ảnh quá 2 MB
+  function uploadAvatar(input) {
+    var f = input.files[0];
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) { alert('Ảnh quá lớn, tối đa 2 MB.'); input.value = ''; return; }
+    input.form.submit();
+  }
+</script>

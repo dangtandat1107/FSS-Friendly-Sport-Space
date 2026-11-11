@@ -3,7 +3,7 @@
 
 <section class="hero">
   <h1>Chọn sân.<br />Chọn giờ.<br />Ra sân.</h1>
-  <p class="hero-copy">Đặt sân cầu lông, bóng đá, tennis, pickleball và bóng rổ. Giữ chỗ @IBookingService.PaymentTimeoutMinutes phút, thanh toán bằng mã QR.</p>
+  <p class="hero-copy">Đặt sân cầu lông, bóng đá, tennis, pickleball và bóng rổ. Xem giờ trống, chọn khung giờ và đặt ngay.</p>
   <form asp-controller="Courts" asp-action="Index" method="get" class="hero-search">
     <select name="sport" class="form-select" aria-label="Môn thể thao">
       <option value="">Tất cả các môn</option>
@@ -47,6 +47,6 @@
 <h2 class="section-title">Đặt sân trong ba bước</h2>
 <div class="steps">
   <div><div class="step-no">1</div><h5 class="mt-1">Chọn sân và giờ</h5><p class="text-muted mb-0">Xem lịch trống theo ngày, bấm vào khung giờ bạn muốn chơi.</p></div>
-  <div><div class="step-no">2</div><h5 class="mt-1">Giữ chỗ và quét mã QR</h5><p class="text-muted mb-0">Chỗ được giữ @IBookingService.PaymentTimeoutMinutes phút. Mã QR đã điền sẵn số tiền và nội dung.</p></div>
-  <div><div class="step-no">3</div><h5 class="mt-1">Chủ sân xác nhận</h5><p class="text-muted mb-0">Chủ sân đối chiếu khoản chuyển và xác nhận. Bạn xem lịch trong mục Lịch của tôi.</p></div>
+  <div><div class="step-no">2</div><h5 class="mt-1">Thanh toán chuyển khoản</h5><p class="text-muted mb-0">Chuyển khoản theo thông tin hiển thị, rồi báo cho chủ sân.</p></div>
+  <div><div class="step-no">3</div><h5 class="mt-1">Nhận xác nhận</h5><p class="text-muted mb-0">Chủ sân kiểm tra và xác nhận. Bạn xem lịch trong mục Lịch của tôi.</p></div>
 </div>
