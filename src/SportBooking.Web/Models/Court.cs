@@ -10,6 +10,10 @@ public class Court
     public decimal PricePerHour { get; set; }
     public CourtStatus Status { get; set; } = CourtStatus.Active;
 
+    public CourtFormat CourtFormat { get; set; } = CourtFormat.None;       // loại sân theo quy mô
+    public CourtSurface Surface { get; set; } = CourtSurface.Unspecified;  // mặt sân
+    public bool IsIndoor { get; set; }                                      // trong nhà (có mái che)
+
     public string OwnerId { get; set; } = "";
     public ApplicationUser? Owner { get; set; }
     public List<Booking> Bookings { get; set; } = new();

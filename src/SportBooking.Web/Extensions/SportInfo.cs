@@ -18,11 +18,11 @@ public static class SportInfo
 
     public static SportMeta Meta(this SportType sport) => sport switch
     {
-        SportType.Badminton  => Build("badminton",  "Cầu lông",   "#0e8f8a", "Sân trong nhà, đánh theo giờ"),
-        SportType.Football   => Build("football",   "Bóng đá",    "#4f9d2d", "Sân cỏ nhân tạo, đá theo giờ"),
-        SportType.Tennis     => Build("tennis",     "Tennis",     "#2d68b8", "Sân cứng, đặt theo giờ"),
-        SportType.Pickleball => Build("pickleball", "Pickleball", "#6d4fc2", "Dễ làm quen, hợp chơi theo nhóm"),
-        SportType.Basketball => Build("basketball", "Bóng rổ",    "#b9631f", "Sân rộng cho cả nhóm"),
+        SportType.Badminton  => Build("badminton",  "Cầu lông",   "#0e8f8a", "Thảm nhựa hoặc sàn gỗ"),
+        SportType.Football   => Build("football",   "Bóng đá",    "#4f9d2d", "Sân 5, sân 7, sân 11 người"),
+        SportType.Tennis     => Build("tennis",     "Tennis",     "#2d68b8", "Sân cứng hoặc đất nện"),
+        SportType.Pickleball => Build("pickleball", "Pickleball", "#6d4fc2", "Đánh đơn hoặc đôi"),
+        SportType.Basketball => Build("basketball", "Bóng rổ",    "#b9631f", "Nửa sân 3x3 hoặc cả sân 5x5"),
         _                    => Build("badminton",  sport.ToString(), "#12804f", "")
     };
 

@@ -280,10 +280,16 @@ namespace SportBooking.Web.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("CourtFormat")
+                        .HasColumnType("int");
+
                     b.Property<string>("District")
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
+
+                    b.Property<bool>("IsIndoor")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -302,6 +308,9 @@ namespace SportBooking.Web.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Surface")
                         .HasColumnType("int");
 
                     b.HasKey("Id");

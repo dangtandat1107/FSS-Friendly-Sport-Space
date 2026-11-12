@@ -1,30 +1,73 @@
-@model List<Court>
+@model CourtListVm
 @{
     ViewData["Title"] = "Tìm sân";
-    var current = (SportType?)ViewData["Sport"];
-    var district = (string?)ViewData["District"];
+    var sport = Model.Sport;
+    var formats = sport != null ? CourtOptions.FormatsFor(sport.Value) : Array.Empty<CourtFormat>();
+    var surfaces = sport != null ? CourtOptions.SurfacesFor(sport.Value) : Array.Empty<CourtSurface>();
+    var hasFilter = Model.Format != null || Model.Surface != null || Model.Indoor != null || !string.IsNullOrWhiteSpace(Model.District);
 }
 <h3 class="mb-3">Tìm sân</h3>
 
-<div class="d-flex flex-wrap gap-2 mb-3">
-  <a class="chip @(current == null ? "active" : "")" asp-action="Index" asp-route-district="@district">Tất cả môn</a>
+<!-- Bước 1: chọn môn -->
+<div class="filter-row">
+  <span class="filter-label">Môn</span>
+  <a class="chip @(sport == null ? "active" : "")" asp-action="Index" asp-route-indoor="@Model.Indoor" asp-route-district="@Model.District">Tất cả môn</a>
   @foreach (var s in SportInfo.All)
   {
     var m = s.Meta();
-    <a class="chip @(current == s ? "active" : "")" style="--chip:@m.Color" asp-action="Index" asp-route-sport="@s" asp-route-district="@district">@m.Label</a>
+    <a class="chip @(sport == s ? "active" : "")" style="--chip:@m.Color" asp-action="Index" asp-route-sport="@s" asp-route-indoor="@Model.Indoor" asp-route-district="@Model.District">@m.Label</a>
   }
 </div>
 
-<form method="get" class="d-flex gap-2 mb-4" style="max-width:32rem">
-  @if (current != null) { <input type="hidden" name="sport" value="@current" /> }
-  <input name="district" class="form-control" placeholder="Lọc theo quận, ví dụ Quận 1" value="@district" aria-label="Quận" />
+<!-- Bước 2: chọn loại sân (bóng đá: sân 5, 7, 11; bóng rổ: nửa sân, cả sân) -->
+@if (formats.Length > 0)
+{
+  <div class="filter-row">
+    <span class="filter-label">Loại sân</span>
+    <a class="chip @(Model.Format == null ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-surface="@Model.Surface" asp-route-indoor="@Model.Indoor" asp-route-district="@Model.District">Tất cả</a>
+    @foreach (var f in formats)
+    {
+      var n = Model.FormatCounts.TryGetValue(f, out var cnt) ? cnt : 0;
+      <a class="chip @(Model.Format == f ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@f" asp-route-surface="@Model.Surface" asp-route-indoor="@Model.Indoor" asp-route-district="@Model.District">@f.DisplayName() <small>(@n)</small></a>
+    }
+  </div>
+}
+
+<!-- Mặt sân -->
+@if (surfaces.Length > 1)
+{
+  <div class="filter-row">
+    <span class="filter-label">Mặt sân</span>
+    <a class="chip @(Model.Surface == null ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-indoor="@Model.Indoor" asp-route-district="@Model.District">Tất cả</a>
+    @foreach (var sf in surfaces)
+    {
+      <a class="chip @(Model.Surface == sf ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@sf" asp-route-indoor="@Model.Indoor" asp-route-district="@Model.District">@sf.DisplayName()</a>
+    }
+  </div>
+}
+
+<!-- Trong nhà hay ngoài trời -->
+<div class="filter-row">
+  <span class="filter-label">Vị trí</span>
+  <a class="chip @(Model.Indoor == null ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-district="@Model.District">Tất cả</a>
+  <a class="chip @(Model.Indoor == true ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-indoor="true" asp-route-district="@Model.District">Trong nhà</a>
+  <a class="chip @(Model.Indoor == false ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-indoor="false" asp-route-district="@Model.District">Ngoài trời</a>
+</div>
+
+<form method="get" class="d-flex gap-2 mb-4 mt-3" style="max-width:34rem">
+  @if (sport != null) { <input type="hidden" name="sport" value="@sport" /> }
+  @if (Model.Format != null) { <input type="hidden" name="format" value="@Model.Format" /> }
+  @if (Model.Surface != null) { <input type="hidden" name="surface" value="@Model.Surface" /> }
+  @if (Model.Indoor != null) { <input type="hidden" name="indoor" value="@(Model.Indoor == true ? "true" : "false")" /> }
+  <input name="district" class="form-control" placeholder="Lọc theo quận, ví dụ Quận 1" value="@Model.District" aria-label="Quận" />
   <button class="btn btn-success">Lọc</button>
 </form>
 
-@if (Model.Any())
+@if (Model.Courts.Any())
 {
+  <div class="text-muted small mb-2">@Model.Courts.Count sân phù hợp</div>
   <div class="row g-3">
-    @foreach (var c in Model)
+    @foreach (var c in Model.Courts)
     {
       <div class="col-md-6 col-lg-4">@await Html.PartialAsync("_CourtCard", c)</div>
     }
@@ -34,7 +77,7 @@ else
 {
   <div class="panel-card p-4">
     <h5>Chưa có sân phù hợp</h5>
-    <p class="text-muted mb-3">Thử bỏ bộ lọc quận hoặc chọn môn khác để xem thêm sân.</p>
-    <a class="btn btn-outline-success" asp-action="Index">Xem tất cả sân</a>
+    <p class="text-muted mb-3">Thử bỏ bớt bộ lọc hoặc chọn loại sân khác để xem thêm sân.</p>
+    <a class="btn btn-outline-success" asp-action="Index" asp-route-sport="@sport">@(sport != null ? "Bỏ bộ lọc, xem tất cả sân " + sport.Value.Meta().Label.ToLower() : "Xem tất cả sân")</a>
   </div>
 }

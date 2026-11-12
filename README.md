@@ -107,6 +107,19 @@ Dùng Gmail SMTP với **App Password** của Google (không dùng mật khẩu 
 
 Không commit mật khẩu hay file `.env` lên GitHub. Nếu chưa cấu hình, ở môi trường Development nội dung email (có mã xác nhận) sẽ được ghi ra log.
 
+## Loại sân theo từng môn
+Mỗi sân có loại sân, mặt sân và vị trí (trong nhà hoặc ngoài trời). Các lựa chọn phụ thuộc vào môn:
+
+| Môn | Loại sân | Mặt sân |
+|---|---|---|
+| Bóng đá | Sân 5, sân 7, sân 11 người | Cỏ nhân tạo, cỏ tự nhiên |
+| Bóng rổ | Nửa sân (3x3), cả sân (5x5) | Sàn gỗ, sân cứng |
+| Tennis | Không chia | Sân cứng, đất nện |
+| Cầu lông | Không chia | Thảm nhựa PVC, sàn gỗ |
+| Pickleball | Không chia (đánh đơn hay đôi đều dùng chung một loại sân) | Sân cứng, sàn gỗ |
+
+Khách tìm sân theo từng bước: chọn môn, rồi chọn loại sân, mặt sân, trong nhà hoặc ngoài trời. Chủ sân chọn các thuộc tính này và tải ảnh riêng cho từng sân khi thêm hoặc sửa sân (ảnh lưu tại `wwwroot/uploads/courts`, không có ảnh riêng thì dùng ảnh chung của môn).
+
 ## Ảnh môn thể thao và ảnh đại diện
 - Mỗi môn có ảnh minh họa mặc định trong `wwwroot/images/sports`. Muốn dùng ảnh thật, đặt ảnh vào cùng thư mục với tên `photo-badminton.jpg`, `photo-football.jpg`, `photo-tennis.jpg`, `photo-pickleball.jpg`, `photo-basketball.jpg` (cũng nhận `.png`, `.webp`). Hệ thống tự ưu tiên ảnh thật. Chỉ dùng ảnh có bản quyền cho phép (ví dụ Unsplash, Pexels, Pixabay).
 - Người dùng đổi ảnh đại diện ở trang hồ sơ (JPG, PNG, WEBP, tối đa 2 MB). Ảnh lưu tại `wwwroot/uploads/avatars` (đã nằm trong `.gitignore`), chạy Docker thì được giữ trong volume `avatars`.

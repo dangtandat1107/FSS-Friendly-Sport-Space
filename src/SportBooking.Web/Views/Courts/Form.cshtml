@@ -1,17 +1,92 @@
 @model CourtFormVm
-@{ ViewData["Title"] = Model.Id == 0 ? "Thêm sân" : "Sửa sân"; }
-<div class="row"><div class="col-lg-6">
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm sân" : "Sửa sân";
+
+    // Các loại sân và mặt sân hợp lệ cho từng môn, đưa sang JavaScript để lọc ô chọn khi đổi môn
+    var options = new Dictionary<string, object>();
+    foreach (var s in SportInfo.All)
+    {
+        options[((int)s).ToString()] = new
+        {
+            formats = CourtOptions.FormatsFor(s).Select(f => new { value = ((int)f).ToString(), label = f.DisplayName() }),
+            surfaces = CourtOptions.SurfacesFor(s).Select(f => new { value = ((int)f).ToString(), label = f.DisplayName() })
+        };
+    }
+}
+<div class="row"><div class="col-lg-7">
   <div class="panel-card p-4">
     <h4 class="mb-3">@ViewData["Title"]</h4>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       <input type="hidden" asp-for="Id" />
       <div asp-validation-summary="All" class="text-danger"></div>
+
       <div class="mb-3"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" /></div>
       <div class="mb-3"><label class="form-label" asp-for="SportType"></label><select class="form-select" asp-for="SportType" asp-items="Html.GetEnumSelectList<SportType>()"></select></div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3" id="format-box"><label class="form-label" asp-for="CourtFormat"></label><select class="form-select" asp-for="CourtFormat" asp-items="Html.GetEnumSelectList<CourtFormat>()"></select></div>
+        <div class="col-md-6 mb-3" id="surface-box"><label class="form-label" asp-for="Surface"></label><select class="form-select" asp-for="Surface" asp-items="Html.GetEnumSelectList<CourtSurface>()"></select></div>
+      </div>
+      <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" asp-for="IsIndoor" /><label class="form-check-label" asp-for="IsIndoor"></label></div>
+
       <div class="mb-3"><label class="form-label" asp-for="District"></label><input class="form-control" asp-for="District" /></div>
       <div class="mb-3"><label class="form-label" asp-for="Address"></label><input class="form-control" asp-for="Address" /></div>
       <div class="mb-3"><label class="form-label" asp-for="PricePerHour"></label><input class="form-control" asp-for="PricePerHour" /></div>
+
+      <div class="mb-3">
+        <label class="form-label" asp-for="Image"></label>
+        <img id="img-preview" class="img-preview mb-2" src="@Model.ImageUrl" alt="Ảnh sân" style="@(Model.ImageUrl == null ? "display:none" : "")" />
+        <input class="form-control" type="file" asp-for="Image" accept="image/jpeg,image/png,image/webp" />
+        <div class="form-text">Ảnh JPG, PNG hoặc WEBP, tối đa 4 MB, nên là ảnh nằm ngang (tỉ lệ 16:9). Không chọn ảnh thì dùng ảnh chung của môn.</div>
+        @if (Model.ImageUrl != null)
+        {
+          <div class="form-check mt-2"><input class="form-check-input" type="checkbox" asp-for="RemoveImage" /><label class="form-check-label" asp-for="RemoveImage">Xóa ảnh riêng của sân này</label></div>
+        }
+      </div>
+
       <button class="btn btn-success">Lưu sân</button> <a class="btn btn-link" asp-action="Manage">Hủy</a>
     </form>
   </div>
 </div></div>
+
+<script>
+  (function () {
+    var OPTIONS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(options));
+    var sport = document.getElementById('SportType');
+    var fmt = document.getElementById('CourtFormat'), fmtBox = document.getElementById('format-box');
+    var sur = document.getElementById('Surface'), surBox = document.getElementById('surface-box');
+
+    function fill(select, box, items, emptyLabel) {
+      var current = select.value;
+      select.innerHTML = '';
+      box.style.display = items.length ? '' : 'none';   // môn không có loại này thì ẩn ô chọn
+      var first = document.createElement('option');
+      first.value = '0'; first.textContent = emptyLabel;
+      select.appendChild(first);
+      items.forEach(function (it) {
+        var o = document.createElement('option');
+        o.value = it.value; o.textContent = it.label;
+        select.appendChild(o);
+      });
+      select.value = items.some(function (it) { return it.value === current; }) ? current : '0';
+    }
+    function refresh() {
+      var o = OPTIONS[sport.value] || { formats: [], surfaces: [] };
+      fill(fmt, fmtBox, o.formats, 'Chọn loại sân');
+      fill(sur, surBox, o.surfaces, 'Chưa xác định');
+    }
+    sport.addEventListener('change', refresh);
+    refresh();
+
+    // Xem trước ảnh vừa chọn, chặn sớm ảnh quá 4 MB
+    var file = document.getElementById('Image'), preview = document.getElementById('img-preview');
+    file.addEventListener('change', function () {
+      var f = file.files[0];
+      if (!f) return;
+      if (f.size > 4 * 1024 * 1024) { alert('Ảnh quá lớn, tối đa 4 MB.'); file.value = ''; return; }
+      var r = new FileReader();
+      r.onload = function (e) { preview.src = e.target.result; preview.style.display = ''; };
+      r.readAsDataURL(f);
+    });
+  })();
+</script>

@@ -1,3 +1,4 @@
+@inject SportBooking.Web.Services.IImageStore Images
 @model CourtDetailsVm
 @{
     var c = Model.Court;
@@ -7,13 +8,15 @@
     var groups = new[] { (Label: "Sáng", Start: 6, End: 12), (Label: "Chiều", Start: 12, End: 18), (Label: "Tối", Start: 18, End: 22) };
     string[] dow = { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
     var isCustomer = User.IsInRole("Customer");
+    var image = Images.GetUrl("courts", c.Id.ToString()) ?? m.Image;   // ảnh riêng của sân, không có thì dùng ảnh của môn
 }
 <div style="--sport:@m.Color">
   <section class="court-banner mb-4">
-    <img src="@m.Image" alt="" />
+    <img src="@image" alt="Ảnh sân @c.Name" />
     <div class="inner">
       <div class="fw-semibold">@m.Label</div>
       <h1>@c.Name</h1>
+      <div class="mt-2">@foreach (var t in CourtOptions.Tags(c)) { <span class="tag">@t</span> }</div>
       <div class="mt-2">@c.District, @c.Address. <b>@c.PricePerHour.ToString("N0") đ/giờ</b></div>
     </div>
   </section>

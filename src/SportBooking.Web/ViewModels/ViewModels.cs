@@ -21,9 +21,16 @@ public class CourtFormVm
     public int Id { get; set; }
     [Required, Display(Name = "Tên sân")] public string Name { get; set; } = "";
     [Display(Name = "Môn")] public SportType SportType { get; set; }
+    [Display(Name = "Loại sân")] public CourtFormat CourtFormat { get; set; } = CourtFormat.None;
+    [Display(Name = "Mặt sân")] public CourtSurface Surface { get; set; } = CourtSurface.Unspecified;
+    [Display(Name = "Trong nhà (có mái che)")] public bool IsIndoor { get; set; }
     [Required, Display(Name = "Quận")] public string District { get; set; } = "";
     [Required, Display(Name = "Địa chỉ")] public string Address { get; set; } = "";
     [Range(1000, 10000000), Display(Name = "Giá / giờ (VNĐ)")] public decimal PricePerHour { get; set; } = 80000;
+
+    [Display(Name = "Ảnh sân")] public IFormFile? Image { get; set; }
+    public bool RemoveImage { get; set; }
+    public string? ImageUrl { get; set; }   // chỉ để hiển thị ảnh hiện tại khi sửa
 }
 
 public class CourtDetailsVm

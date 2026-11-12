@@ -1,0 +1,9 @@
+/* Bộ lọc, nhãn loại sân, ảnh sân: bổ sung cho site.css */
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-bottom: .75rem; }
+.filter-label { font-weight: 600; color: var(--muted); min-width: 76px; font-size: .9rem; }
+.chip small { opacity: .75; margin-left: .15rem; }
+.tag { display: inline-block; padding: .1rem .55rem; border-radius: 6px; background: #eef3ef; color: var(--forest); font-size: .78rem; font-weight: 600; margin: 0 .3rem .3rem 0; }
+.court-banner .tag { background: rgba(255, 255, 255, .2); color: #fff; backdrop-filter: blur(2px); }
+.sport-tile .tagline { font-size: .8rem; opacity: .92; line-height: 1.25; }
+.img-preview { width: 100%; max-width: 420px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--mist); display: block; }
+.thumb-sm { width: 72px; height: 44px; object-fit: cover; border-radius: 8px; background: var(--mist); display: block; }

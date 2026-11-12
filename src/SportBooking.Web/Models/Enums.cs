@@ -38,3 +38,26 @@ public enum PaymentStatus
     [Display(Name = "Đã hoàn tiền")] Refunded,
     [Display(Name = "Chờ chủ sân xác nhận")] AwaitingConfirmation
 }
+
+// Loại sân theo quy mô (chỉ áp dụng cho bóng đá và bóng rổ)
+public enum CourtFormat
+{
+    [Display(Name = "Chưa phân loại")] None = 0,
+    [Display(Name = "Sân 5 người")] Five = 1,
+    [Display(Name = "Sân 7 người")] Seven = 2,
+    [Display(Name = "Sân 11 người")] Eleven = 3,
+    [Display(Name = "Nửa sân (3x3)")] HalfCourt = 4,
+    [Display(Name = "Cả sân (5x5)")] FullCourt = 5
+}
+
+// Mặt sân
+public enum CourtSurface
+{
+    [Display(Name = "Chưa xác định")] Unspecified = 0,
+    [Display(Name = "Sân cứng")] Hard = 1,
+    [Display(Name = "Đất nện")] Clay = 2,
+    [Display(Name = "Cỏ nhân tạo")] ArtificialGrass = 3,
+    [Display(Name = "Cỏ tự nhiên")] NaturalGrass = 4,
+    [Display(Name = "Sàn gỗ")] Wood = 5,
+    [Display(Name = "Thảm nhựa PVC")] PvcMat = 6
+}
