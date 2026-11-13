@@ -54,11 +54,12 @@ Chưa làm so với kế hoạch tuần 4:
 - Lịch đặt sân dạng lưới (hàng là sân, cột là khung giờ; xanh còn trống, đỏ đã đặt, vàng đang thanh toán), bấm ô xanh để đặt
 - Toast khi đặt sân thành công kèm mã đơn FSS-XXXXX
 - Giao diện tối, lưu lựa chọn trong `localStorage`
+- Ghi nhận sự cố trên sân và vai trò Nhân viên sân (Staff): luồng SOS trong giờ chơi và luồng phản hồi sau giờ chơi, SLA, tự động leo thang lên Admin (bảng `Staffs`, `Incidents`, `IncidentLogs`, migration `AddIncidents`)
 
 Còn lại:
 - Unit test cho `BookingService` và điều kiện đánh giá (chuyển từ tuần 4)
 - Hoàn thiện ERD, Use Case và đưa vào thư mục `docs/`
-- Tiếp tục lộ trình đã chốt ở tuần 3: order nước kèm, khuyến mãi, nhân viên sân, ghi nhận sự cố, chuỗi tập luyện, rồi 2 chức năng AI
+- Tiếp tục lộ trình đã chốt ở tuần 3: order nước kèm, khuyến mãi, chuỗi tập luyện, rồi 2 chức năng AI
 
 ## Công nghệ
 - ASP.NET Core 8 MVC, Razor Views, Bootstrap 5
@@ -75,14 +76,20 @@ Còn lại:
 - Giao diện theo từng môn (màu và hình mặt sân riêng), tìm sân theo môn, loại sân, mặt sân, vị trí (trong nhà/ngoài trời, trừ bóng đá) và quận
 - Xem lịch trống theo ngày, đặt sân. Lịch đã thanh toán chỉ hủy được trước giờ chơi ít nhất 2 giờ; lịch chưa thanh toán hủy lúc nào cũng được
 - Thanh toán chuyển khoản qua mã VietQR (tự điền số tiền và nội dung), giữ chỗ 15 phút. Khách báo đã chuyển khoản, chủ sân đối chiếu tài khoản ngân hàng rồi xác nhận. MoMo mới ở mức mô phỏng
-- Mới ở tuần 5, đang kiểm thử: lịch dạng lưới, đánh giá sân 1 đến 5 sao, toast khi đặt thành công, giao diện tối
+- Báo sự cố: bấm SOS khi đang trong giờ chơi, hoặc gửi phản hồi, khiếu nại trong 48 giờ sau khi hết giờ chơi
+- Mới ở tuần 5, đang kiểm thử: lịch dạng lưới, đánh giá sân 1 đến 5 sao, toast khi đặt thành công, giao diện tối, báo sự cố
 
 **Chủ sân**
 - Thêm, sửa sân (kèm loại sân, mặt sân, ảnh riêng), đổi trạng thái bảo trì
 - Duyệt hoặc từ chối lịch đặt, xác nhận hoặc từ chối thanh toán (chỉ thấy dữ liệu sân của mình)
+- Tạo tài khoản nhân viên và giao sân phụ trách; xem sự cố của sân mình (có đồng hồ đếm ngược SLA), phản hồi và đề xuất bồi thường; thấy cảnh báo sự cố cơ sở vật chất chưa xử lý ngay trong trang Quản lý sân
+
+**Nhân viên sân (Staff)**
+- Chỉ thấy và xử lý sự cố của các sân được giao (tiếp nhận, đang xử lý, hoàn tất). Không có quyền duyệt lịch, thanh toán, quản lý sân hay đóng và từ chối báo cáo
 
 **Admin**
 - Thống kê tổng quan (số người dùng, sân, lượt đặt, doanh thu đã xác nhận), danh sách người dùng
+- Nhận các sự cố bị leo thang do quá hạn tiếp nhận (qua email và tab "Đã leo thang"), xem toàn bộ sự cố
 
 **Kỹ thuật**
 - Chống đặt trùng giờ bằng transaction mức Serializable (`Services/BookingService.cs`)
@@ -99,11 +106,12 @@ Còn lại:
 | Serilog, health check, README | Đã có |
 | Thanh toán | Một phần: VietQR và chủ sân xác nhận thủ công. MoMo mới mô phỏng, chưa có cổng thanh toán thật, chưa tự đối soát |
 | Đánh giá sân, lịch dạng lưới, toast, giao diện tối | Đã code, đang kiểm thử |
+| Ghi nhận sự cố và nhân viên sân | Đã code, đang kiểm thử |
 | Unit test | Chưa (repo chưa có project test) |
 | Tài liệu thiết kế (ERD, Use Case) | Chưa đưa vào repo |
 | Thống kê nâng cao (biểu đồ, theo thời gian, theo sân) | Chưa |
-| Cache dữ liệu, hàng đợi, xử lý nền, thời gian thực, reverse proxy HTTPS | Chưa. `IMemoryCache` hiện chỉ dùng để giới hạn thử mã quên mật khẩu; giữ chỗ 15 phút được kiểm tra khi truy vấn, chưa có tiến trình nền dọn lịch hết hạn |
-| Hạng mục mở rộng đã chốt ở tuần 3 (order nước, khuyến mãi, nhân viên sân, ghi nhận sự cố, chuỗi tập luyện) | Chưa |
+| Cache dữ liệu, hàng đợi, thời gian thực (SignalR), reverse proxy HTTPS | Chưa. `IMemoryCache` hiện chỉ dùng để giới hạn thử mã quên mật khẩu. Đã có 1 tiến trình nền (leo thang sự cố quá hạn); thông báo SOS dùng polling 15 giây. Giữ chỗ 15 phút được kiểm tra khi truy vấn, chưa có tiến trình nền dọn lịch hết hạn |
+| Hạng mục mở rộng đã chốt ở tuần 3 còn lại (order nước, khuyến mãi, chuỗi tập luyện) | Chưa |
 | Phần AI (chatbot đặt sân, tư vấn môn thể thao, dự báo giờ cao điểm), lớp kiểm soát AI, bộ kiểm thử AI | Chưa |
 | Triển khai public có HTTPS | Chưa |
 
@@ -132,6 +140,7 @@ Mở http://localhost:8080. Health check: http://localhost:8080/health
 | Admin | admin@demo.com | Admin@123 |
 | Chủ sân | owner@demo.com | Owner@123 |
 | Khách hàng | customer@demo.com | Customer@123 |
+| Nhân viên sân | staff@demo.com | Staff@123 |
 
 Bạn cũng có thể tự đăng ký tài khoản Khách hàng hoặc Chủ sân ở trang Đăng ký. Tài khoản khách demo có sẵn 3 lịch đã qua (2 lịch đã đánh giá, 1 lịch chưa) để thử luồng đánh giá.
 
@@ -182,13 +191,29 @@ Mặc định trang thanh toán hiển thị dữ liệu minh họa. Muốn th�
 - **Giao diện tối:** nút mặt trăng/mặt trời ở thanh trên cùng, lưu lựa chọn trong `localStorage` (khóa `fss-theme`), áp dụng cho cả khách hàng, chủ sân và admin. Màu nằm ở `wwwroot/css/dark.css`.
 - **Bóng đá:** môn Bóng đá không có bộ lọc và lựa chọn trong nhà/ngoài trời (luôn là ngoài trời). Quy tắc nằm ở `CourtOptions.HasIndoorOption`.
 
+## Ghi nhận sự cố
+Một bảng `Incidents` cho cả hai luồng, phân biệt bằng `IsRealTime`. Server tự xác định luồng bằng cách so giờ hiện tại với khung giờ của lịch đã xác nhận (`IncidentService.CreateIncidentAsync`), không tin dữ liệu client.
+
+| | Luồng 1: SOS | Luồng 2: Phản hồi, khiếu nại |
+|---|---|---|
+| Khi nào | Đang trong giờ chơi | Trong 48 giờ sau khi hết giờ chơi |
+| Khách nhập | Loại sự cố, mô tả, ảnh | Lý do (danh sách chọn), mô tả, ảnh |
+| Mức độ và hạn tiếp nhận | Y tế, an ninh: Critical 5 phút. Còn lại: High 15 phút | Medium 24 hoặc 48 giờ, Low 72 giờ |
+| Thông báo | Toast trên màn hình nhân viên và chủ sân (cập nhật mỗi 15 giây), nút gọi 115 | Email cho chủ sân; chủ sân phản hồi và đề xuất bồi thường, khách nhận email |
+
+- **Trạng thái:** Mới báo, Đã tiếp nhận, Đang xử lý, Đã xử lý xong, Đã đóng. Thêm Đã leo thang (hệ thống tự đặt) và Bị từ chối. Tiến trình nền quét mỗi 30 giây: báo cáo còn "Mới báo" quá hạn tiếp nhận thì tự chuyển "Đã leo thang" và gửi email Admin. Mọi thay đổi ghi vào `IncidentLogs` (ai, làm gì, lúc nào).
+- **Phân quyền:** nhân viên chỉ thấy sân được giao; chỉ chủ sân và Admin được từ chối, đóng và phản hồi bồi thường.
+- **Chống lạm dụng:** mỗi lịch tối đa 1 SOS và 1 phản hồi (chỉ mục duy nhất trong database), tối đa 3 báo cáo mỗi khách trong 24 giờ, quá 48 giờ sau giờ chơi thì không nhận. Điểm uy tín `TrustScore` của khách (mặc định 100): báo cáo bị từ chối trừ 10, được xử lý xong cộng 2, dưới 50 thì không gửi được (trừ SOS y tế).
+- **Báo trùng:** chỉ gộp sự cố cơ sở vật chất của cùng một sân trong cùng khoảng thời gian (60 phút với SOS, 24 giờ với phản hồi); báo cáo gốc được xử lý, các báo cáo trùng đi theo. Sự cố y tế, an ninh, mất đồ, thanh toán là việc riêng của từng người nên không bao giờ gộp.
+- **Liên kết với tính năng khác:** trang Quản lý sân hiện cảnh báo sự cố cơ sở vật chất chưa xử lý của từng sân. Hệ thống Gamification và Voucher chưa có nên hiện tại dùng điểm uy tín `TrustScore`; chủ sân chỉ ghi nhận loại bồi thường đề xuất, hệ thống không tự chuyển tiền hay tạo voucher.
+
 ## Cấu trúc thư mục
 ```
 src/SportBooking.Web
-├── Controllers/   Account, Profile, Home, Courts, Bookings, Payments, Reviews, Admin
-├── Models/        Court, Booking, Payment, Review, ApplicationUser, Enums
+├── Controllers/   Account, Profile, Home, Courts, Bookings, Payments, Reviews, Incidents, Staff, Admin
+├── Models/        Court, Booking, Payment, Review, Staff, Incident, ApplicationUser, Enums
 ├── Data/          AppDbContext, DbSeeder
-├── Services/      BookingService, PaymentService, VietQrService, EmailService, AvatarService, ImageStore, AppClaimsFactory
+├── Services/      BookingService, PaymentService, IncidentService, IncidentEscalationWorker, VietQrService, EmailService, AvatarService, ImageStore, AppClaimsFactory
 ├── Extensions/    CourtOptions, ReviewExtensions, SportInfo, EnumExtensions
 ├── ViewModels/    Các model cho form và trang
 ├── Views/         Razor Views (Shared/_CalendarGrid là lịch dạng lưới)
