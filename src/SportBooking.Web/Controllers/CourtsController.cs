@@ -104,7 +104,17 @@ public class CourtsController : Controller
     {
         var q = _db.Courts.AsNoTracking().AsQueryable();
         if (!User.IsInRole("Admin")) q = q.Where(c => c.OwnerId == UserId);
-        return View(await q.OrderBy(c => c.Name).ToListAsync());
+        var courts = await q.OrderBy(c => c.Name).ToListAsync();
+
+        // Số sự cố cơ sở vật chất chưa xử lý của từng sân, để chủ sân thấy cảnh báo và cân nhắc chuyển sân sang bảo trì
+        var ids = courts.Select(c => c.Id).ToList();
+        ViewData["OpenFacility"] = await _db.Incidents
+            .Where(i => ids.Contains(i.CourtId) && i.Category == IncidentCategory.Facility && i.DuplicateOfId == null
+                     && (i.Status == IncidentStatus.Reported || i.Status == IncidentStatus.Acknowledged
+                      || i.Status == IncidentStatus.InProgress || i.Status == IncidentStatus.Escalated))
+            .GroupBy(i => i.CourtId).Select(g => new { g.Key, N = g.Count() })
+            .ToDictionaryAsync(x => x.Key, x => x.N);
+        return View(courts);
     }
 
     [Authorize(Roles = "Owner,Admin")]

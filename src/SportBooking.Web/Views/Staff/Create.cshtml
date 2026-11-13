@@ -1,0 +1,28 @@
+@model StaffFormVm
+@{
+    ViewData["Title"] = "Thêm nhân viên";
+    var courts = (List<Court>)ViewBag.Courts;
+}
+<div class="row"><div class="col-lg-6">
+  <div class="panel-card p-4">
+    <h4 class="mb-3">Thêm nhân viên sân</h4>
+    <form method="post">
+      <div asp-validation-summary="All" class="text-danger"></div>
+      <div class="mb-3"><label class="form-label" asp-for="FullName"></label><input class="form-control" asp-for="FullName" /></div>
+      <div class="mb-3"><label class="form-label" asp-for="Email"></label><input class="form-control" asp-for="Email" autocomplete="off" /></div>
+      <div class="mb-3"><label class="form-label" asp-for="Password"></label><input class="form-control" asp-for="Password" autocomplete="new-password" /><div class="form-text">Gửi mật khẩu này cho nhân viên, họ có thể đổi trong Hồ sơ.</div></div>
+      <div class="mb-3">
+        <div class="form-label">Sân phụ trách</div>
+        @foreach (var c in courts)
+        {
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="CourtIds" id="court-@c.Id" value="@c.Id" checked="@Model.CourtIds.Contains(c.Id)" />
+            <label class="form-check-label" for="court-@c.Id">@c.Name</label>
+          </div>
+        }
+      </div>
+      <button class="btn btn-success">Tạo tài khoản</button>
+      <a class="btn btn-link" asp-action="Index">Hủy</a>
+    </form>
+  </div>
+</div></div>

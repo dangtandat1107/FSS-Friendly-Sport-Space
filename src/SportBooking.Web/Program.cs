@@ -38,6 +38,8 @@ builder.Services.AddMemoryCache();
 
 builder.Services.AddScoped<IBookingService, BookingService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IIncidentService, IncidentService>();
+builder.Services.AddHostedService<IncidentEscalationWorker>();
 builder.Services.AddSingleton<IVietQrService, VietQrService>();
 builder.Services.AddSingleton<IAvatarService, AvatarService>();
 builder.Services.AddSingleton<IImageStore, ImageStore>();

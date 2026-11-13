@@ -1,0 +1,51 @@
+@model IncidentManageVm
+@{
+    ViewData["Title"] = "Sự cố";
+    var canManageStaff = User.IsInRole("Owner") || User.IsInRole("Admin");
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h3 class="mb-0">Sự cố</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-secondary" asp-action="Manage" asp-route-tab="@Model.Tab" asp-route-all="@(!Model.ShowAll)">@(Model.ShowAll ? "Chỉ việc đang mở" : "Hiện cả việc đã đóng")</a>
+    @if (canManageStaff) { <a class="btn btn-sm btn-outline-success" asp-controller="Staff" asp-action="Index">Nhân viên</a> }
+  </div>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link @(Model.Tab == "sos" ? "active" : "")" asp-action="Manage" asp-route-tab="sos" asp-route-all="@Model.ShowAll">🚨 Sự cố khẩn cấp @if (Model.OpenSos > 0) { <span class="badge bg-danger">@Model.OpenSos</span> }</a></li>
+  <li class="nav-item"><a class="nav-link @(Model.Tab == "feedback" ? "active" : "")" asp-action="Manage" asp-route-tab="feedback" asp-route-all="@Model.ShowAll">📝 Phản hồi cần xử lý @if (Model.OpenFeedback > 0) { <span class="badge bg-warning text-dark">@Model.OpenFeedback</span> }</a></li>
+  <li class="nav-item"><a class="nav-link @(Model.Tab == "escalated" ? "active" : "")" asp-action="Manage" asp-route-tab="escalated">⚠️ Đã leo thang @if (Model.EscalatedCount > 0) { <span class="badge bg-danger">@Model.EscalatedCount</span> }</a></li>
+</ul>
+
+@if (Model.Items.Count == 0)
+{
+  <div class="panel-card p-4 text-muted">Không có sự cố nào ở mục này.</div>
+}
+else
+{
+  <table class="table align-middle">
+    <tr><th>Mã</th><th>Sân</th><th>Khách</th><th>Loại</th><th>Mức độ và trạng thái</th><th>@(Model.Tab == "feedback" ? "Hạn phản hồi" : "Hạn tiếp nhận")</th><th></th></tr>
+    @foreach (var i in Model.Items)
+    {
+      <tr>
+        <td class="fw-semibold">@i.Code @if (i.ReportCount > 1) { <span class="badge bg-secondary" title="Có nhiều người báo cùng sự cố">@("x" + i.ReportCount)</span> }</td>
+        <td>@i.Court?.Name</td>
+        <td>@i.Reporter?.FullName</td>
+        <td>@i.Category.DisplayName()@if (i.Reason != null) { <div class="small text-muted">@i.Reason.Value.DisplayName()</div> }</td>
+        <td>@await Html.PartialAsync("_IncidentBadges", i)</td>
+        <td>
+          @if (i.Status == IncidentStatus.Reported)
+          {
+            <span class="sla fw-semibold" data-sla="@((int)(i.SlaDeadline - DateTime.Now).TotalSeconds)">...</span>
+          }
+          else if (i.Status == IncidentStatus.Escalated)
+          {
+            <span class="text-danger fw-semibold">Quá hạn, đã báo Admin</span>
+          }
+          else { <span class="text-muted">-</span> }
+        </td>
+        <td class="text-end"><a class="btn btn-sm @(i.IsOpen ? "btn-success" : "btn-outline-secondary")" asp-action="Details" asp-route-id="@i.Id">Xử lý</a></td>
+      </tr>
+    }
+  </table>
+}

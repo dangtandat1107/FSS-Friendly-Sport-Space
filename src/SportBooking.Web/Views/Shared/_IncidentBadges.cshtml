@@ -1,0 +1,21 @@
+@model Incident
+@{
+    var sev = Model.Severity switch
+    {
+        IncidentSeverity.Critical => "bg-danger",
+        IncidentSeverity.High => "bg-warning text-dark",
+        IncidentSeverity.Medium => "bg-info text-dark",
+        _ => "bg-secondary"
+    };
+    var st = Model.Status switch
+    {
+        IncidentStatus.Reported => "bg-warning text-dark",
+        IncidentStatus.Acknowledged or IncidentStatus.InProgress => "bg-primary",
+        IncidentStatus.Resolved => "bg-success",
+        IncidentStatus.Escalated => "bg-danger",
+        IncidentStatus.Rejected => "bg-dark",
+        _ => "bg-secondary"
+    };
+}
+<span class="badge @sev">@Model.Severity.DisplayName()</span>
+<span class="badge @st">@Model.Status.DisplayName()</span>

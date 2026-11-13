@@ -1,6 +1,9 @@
 @inject SportBooking.Web.Services.IImageStore Images
 @model List<Court>
-@{ ViewData["Title"] = "Quản lý sân"; }
+@{
+    ViewData["Title"] = "Quản lý sân";
+    var openFacility = ViewData["OpenFacility"] as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3 class="mb-0">Quản lý sân</h3>
   <a class="btn btn-success" asp-action="Create">Thêm sân</a>
@@ -20,7 +23,13 @@
       </td>
       <td>@c.District</td>
       <td>@c.PricePerHour.ToString("N0") đ</td>
-      <td><span class="badge @(c.Status == CourtStatus.Active ? "bg-success" : "bg-warning text-dark")">@c.Status.DisplayName()</span></td>
+      <td>
+        <span class="badge @(c.Status == CourtStatus.Active ? "bg-success" : "bg-warning text-dark")">@c.Status.DisplayName()</span>
+        @if (openFacility.TryGetValue(c.Id, out var nOpen))
+        {
+          <a class="badge bg-danger text-decoration-none d-inline-block mt-1" asp-controller="Incidents" asp-action="Manage" title="Sự cố cơ sở vật chất chưa xử lý xong">⚠️ @nOpen sự cố cơ sở vật chất</a>
+        }
+      </td>
       <td class="text-end">
         <a class="btn btn-sm btn-outline-success" asp-action="Edit" asp-route-id="@c.Id">Sửa</a>
         <form asp-action="ToggleStatus" asp-route-id="@c.Id" method="post" class="d-inline">

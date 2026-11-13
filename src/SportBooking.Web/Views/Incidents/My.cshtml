@@ -1,0 +1,24 @@
+@model List<Incident>
+@{ ViewData["Title"] = "Báo cáo của tôi"; }
+<h3>Báo cáo sự cố của tôi</h3>
+@if (Model.Count == 0)
+{
+  <div class="panel-card p-4 text-muted">Bạn chưa gửi báo cáo nào. Khi đang chơi hoặc vừa chơi xong, vào "Lịch của tôi" và bấm "Báo sự cố".</div>
+}
+else
+{
+  <table class="table align-middle">
+    <tr><th>Mã</th><th>Sân</th><th>Loại</th><th>Trạng thái</th><th>Gửi lúc</th><th></th></tr>
+    @foreach (var i in Model)
+    {
+      <tr>
+        <td class="fw-semibold">@i.Code</td>
+        <td>@i.Court?.Name</td>
+        <td>@(i.IsRealTime ? "🚨 SOS" : "📝 Phản hồi")<div class="small text-muted">@i.Category.DisplayName()</div></td>
+        <td>@await Html.PartialAsync("_IncidentBadges", i)</td>
+        <td>@i.CreatedAt.ToString("dd/MM/yyyy HH:mm")</td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-success" asp-action="Details" asp-route-id="@i.Id">Xem</a></td>
+      </tr>
+    }
+  </table>
+}

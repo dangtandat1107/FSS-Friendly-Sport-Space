@@ -134,3 +134,51 @@ public class ProfilePageVm
     public string Initial => string.IsNullOrWhiteSpace(FullName) ? "?"
         : FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries).Last()[..1].ToUpper();
 }
+
+// ---------- Ghi nhận sự cố ----------
+public enum ReportMode { NotYet, Sos, Feedback, TooLate }   // trạng thái của lịch đặt so với giờ hiện tại
+
+public class IncidentReportVm
+{
+    public int BookingId { get; set; }
+
+    public IncidentCategory? Category { get; set; }        // luồng SOS: khách chọn loại sự cố
+    public ComplaintReason? Reason { get; set; }           // luồng phản hồi: khách chọn lý do khiếu nại
+
+    [Display(Name = "Mô tả")] public string? Description { get; set; }
+    public IFormFile? Photo { get; set; }                  // ảnh minh họa, không bắt buộc
+
+    // Chỉ để hiển thị, server tự tính lại ở mỗi lần gửi
+    public string? CourtName { get; set; }
+    public string? TimeLabel { get; set; }
+    public ReportMode Mode { get; set; }
+    public bool HasSos { get; set; }
+    public bool HasFeedback { get; set; }
+}
+
+public class IncidentManageVm
+{
+    public string Tab { get; set; } = "sos";               // sos, feedback hoặc escalated
+    public bool ShowAll { get; set; }
+    public List<Incident> Items { get; set; } = new();
+    public int OpenSos { get; set; }
+    public int OpenFeedback { get; set; }
+    public int EscalatedCount { get; set; }
+}
+
+public class StaffFormVm
+{
+    [Required(ErrorMessage = "Vui lòng nhập họ tên.")]
+    [StringLength(100)]
+    [Display(Name = "Họ và tên")] public string FullName { get; set; } = "";
+
+    [Required(ErrorMessage = "Vui lòng nhập email."), EmailAddress(ErrorMessage = "Email không hợp lệ.")]
+    [Display(Name = "Email đăng nhập")] public string Email { get; set; } = "";
+
+    [Required(ErrorMessage = "Vui lòng nhập mật khẩu."), StringLength(100, MinimumLength = 6, ErrorMessage = "Mật khẩu từ 6 ký tự.")]
+    [DataType(DataType.Password)]
+    [Display(Name = "Mật khẩu tạm")] public string Password { get; set; } = "";
+
+    public List<int> CourtIds { get; set; } = new();        // các sân được giao phụ trách
+}
+

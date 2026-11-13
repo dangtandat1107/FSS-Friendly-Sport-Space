@@ -1,6 +1,9 @@
 @model List<Booking>
 @{ ViewData["Title"] = "Lịch của tôi"; }
-<h3>Lịch đặt của tôi</h3>
+<div class="d-flex justify-content-between align-items-center mb-2">
+  <h3 class="mb-0">Lịch đặt của tôi</h3>
+  <a class="btn btn-sm btn-outline-secondary" asp-controller="Incidents" asp-action="My">Báo cáo sự cố của tôi</a>
+</div>
 <table class="table align-middle">
 <tr><th>Sân</th><th>Thời gian</th><th>Tiền</th><th>Trạng thái</th><th>Thanh toán</th><th></th></tr>
 @foreach (var b in Model)
@@ -47,6 +50,11 @@
         {
           <a class="btn btn-sm btn-outline-warning" asp-controller="Reviews" asp-action="Create" asp-route-bookingId="@b.Id">Đánh giá</a>
         }
+      }
+      @if (b.Status == BookingStatus.Confirmed && b.StartTime <= DateTime.Now && DateTime.Now <= b.EndTime.AddHours(IncidentPolicy.FeedbackWindowHours))
+      {
+        var inGame = DateTime.Now < b.EndTime;
+        <a class="btn btn-sm @(inGame ? "btn-danger" : "btn-outline-danger")" asp-controller="Incidents" asp-action="Report" asp-route-bookingId="@b.Id">@(inGame ? "🚨 Báo sự cố" : "Báo sự cố")</a>
       }
       @if (b.Status != BookingStatus.Cancelled && (awaiting != null || !b.IsExpired) && b.StartTime > DateTime.Now)
       {

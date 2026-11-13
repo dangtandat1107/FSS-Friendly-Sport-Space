@@ -46,6 +46,10 @@
           <li class="nav-item"><a class="nav-link" asp-controller="Courts" asp-action="Manage">Quản lý sân</a></li>
           <li class="nav-item"><a class="nav-link" asp-controller="Bookings" asp-action="Manage">Duyệt lịch</a></li>
         }
+        @if (User.IsInRole("Owner") || User.IsInRole("Admin") || User.IsInRole("Staff"))
+        {
+          <li class="nav-item"><a class="nav-link" asp-controller="Incidents" asp-action="Manage">Sự cố</a></li>
+        }
         @if (User.IsInRole("Admin")) { <li class="nav-item"><a class="nav-link" asp-controller="Admin" asp-action="Index">Admin</a></li> }
       </ul>
       <div class="d-flex align-items-center gap-2">
@@ -64,7 +68,11 @@
             <ul class="dropdown-menu dropdown-menu-end">
               <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index">Hồ sơ của tôi</a></li>
               <li><a class="dropdown-item" asp-controller="Profile" asp-action="Index" asp-route-tab="password">Đổi mật khẩu</a></li>
-              @if (User.IsInRole("Customer")) { <li><a class="dropdown-item" asp-controller="Bookings" asp-action="My">Lịch của tôi</a></li> }
+              @if (User.IsInRole("Customer"))
+              {
+                <li><a class="dropdown-item" asp-controller="Bookings" asp-action="My">Lịch của tôi</a></li>
+                <li><a class="dropdown-item" asp-controller="Incidents" asp-action="My">Báo cáo sự cố của tôi</a></li>
+              }
               <li><hr class="dropdown-divider" /></li>
               <li><form asp-controller="Account" asp-action="Logout" method="post"><button class="dropdown-item text-danger">Đăng xuất</button></form></li>
             </ul>
@@ -85,7 +93,8 @@
   @RenderBody()
 </main>
 <footer class="container text-center site-footer py-4">FSS - Friendly Sport Space. Đồ án chuyên ngành, HUTECH.</footer>
-<div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="true"></div>
+@{ var pollsIncidents = User.IsInRole("Staff") || User.IsInRole("Owner") || User.IsInRole("Admin"); }
+<div id="toast-root" class="toast-root" aria-live="polite" aria-atomic="true" data-incident-poll="@(pollsIncidents ? Url.Action("Poll", "Incidents") : null)"></div>
 @if (TempData["Toast"] is string toastMessage)
 {
   <div id="toast-data" data-message="@toastMessage" hidden></div>

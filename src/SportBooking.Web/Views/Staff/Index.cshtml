@@ -1,0 +1,31 @@
+@model List<Staff>
+@{ ViewData["Title"] = "Nhân viên sân"; }
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Nhân viên sân</h3>
+  <a class="btn btn-success" asp-action="Create">Thêm nhân viên</a>
+</div>
+<p class="text-muted">Nhân viên chỉ thấy và xử lý sự cố của các sân được giao. Họ không có quyền duyệt lịch, thanh toán hay quản lý sân.</p>
+@if (Model.Count == 0)
+{
+  <div class="panel-card p-4 text-muted">Chưa có nhân viên nào.</div>
+}
+else
+{
+  <table class="table align-middle">
+    <tr><th>Nhân viên</th><th>Email</th><th>Sân phụ trách</th><th>Trạng thái</th><th></th></tr>
+    @foreach (var s in Model)
+    {
+      <tr>
+        <td class="fw-semibold">@s.User?.FullName</td>
+        <td>@s.User?.Email</td>
+        <td>@s.Court?.Name</td>
+        <td><span class="badge @(s.IsActive ? "bg-success" : "bg-secondary")">@(s.IsActive ? "Đang làm" : "Tạm dừng")</span></td>
+        <td class="text-end">
+          <form asp-action="Toggle" asp-route-id="@s.Id" method="post" class="d-inline">
+            <button class="btn btn-sm btn-outline-secondary">@(s.IsActive ? "Tạm dừng" : "Cho làm lại")</button>
+          </form>
+        </td>
+      </tr>
+    }
+  </table>
+}

@@ -47,3 +47,9 @@ button.cal-free:focus-visible { outline: 2px solid #14532d; outline-offset: 1px;
 .star-input label { font-size: 2.2rem; line-height: 1; color: #cfd8d2; cursor: pointer; }
 .star-input label:hover, .star-input label:hover ~ label, .star-input input:checked ~ label { color: #f5a623; }
 .star-input input:focus-visible + label { outline: 2px solid var(--brand); border-radius: 4px; }
+
+/* ---------- Ghi nhận sự cố ---------- */
+.incident-card-sos { border: 2px solid #dc3545; }
+.incident-card-fb { border: 2px solid var(--brand); }
+.incident-card-off { opacity: .65; }
+.sla { font-variant-numeric: tabular-nums; }

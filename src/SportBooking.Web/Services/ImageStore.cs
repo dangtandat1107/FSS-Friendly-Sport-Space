@@ -17,7 +17,7 @@ public interface IImageStore
 // Ảnh lưu trong wwwroot/uploads/<thư mục>/<mã>.<đuôi>. Không cần thêm cột nào trong database.
 public class ImageStore : IImageStore
 {
-    private static readonly string[] Folders = { "avatars", "courts" };
+    private static readonly string[] Folders = { "avatars", "courts", "incidents" };
     private static readonly string[] Extensions = { ".jpg", ".png", ".webp" };
     private readonly string _root;
 

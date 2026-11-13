@@ -11,6 +11,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<Payment> Payments => Set<Payment>();
     public DbSet<Review> Reviews => Set<Review>();
+    public DbSet<Staff> Staffs => Set<Staff>();
+    public DbSet<Incident> Incidents => Set<Incident>();
+    public DbSet<IncidentLog> IncidentLogs => Set<IncidentLog>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -50,6 +53,41 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             e.HasOne(x => x.Booking).WithOne(x => x.Review).HasForeignKey<Review>(x => x.BookingId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => x.CourtId);
             e.ToTable(t => t.HasCheckConstraint("CK_Reviews_Rating", "[Rating] BETWEEN 1 AND 5"));
+        });
+
+        b.Entity<Staff>(e =>
+        {
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Court).WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.UserId, x.CourtId }).IsUnique();   // một nhân viên chỉ được giao một lần cho mỗi sân
+        });
+
+        b.Entity<Incident>(e =>
+        {
+            e.Property(x => x.Description).HasMaxLength(1000).IsRequired();
+            e.Property(x => x.ResolutionNote).HasMaxLength(1000);
+            e.Property(x => x.OwnerResponse).HasMaxLength(1000);
+            e.HasOne(x => x.Booking).WithMany().HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Court).WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Reporter).WithMany().HasForeignKey(x => x.ReporterId).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.HandledBy).WithMany().HasForeignKey(x => x.HandledById).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.DuplicateOf).WithMany().HasForeignKey(x => x.DuplicateOfId).OnDelete(DeleteBehavior.Restrict);
+            // Mỗi lịch đặt tối đa 2 báo cáo: 1 SOS (IsRealTime = true) và 1 phản hồi (IsRealTime = false). Chặn cả khi bấm gửi hai lần cùng lúc
+            e.HasIndex(x => new { x.BookingId, x.IsRealTime }).IsUnique();
+            e.HasIndex(x => new { x.CourtId, x.Status });
+            e.HasIndex(x => new { x.Status, x.SlaDeadline });           // tiến trình nền quét các báo cáo quá hạn
+            e.HasIndex(x => x.ReporterId);
+            e.HasIndex(x => x.DuplicateOfId);
+        });
+
+        b.Entity<IncidentLog>(e =>
+        {
+            e.Property(x => x.Action).HasMaxLength(60).IsRequired();
+            e.Property(x => x.Note).HasMaxLength(1000);
+            e.Property(x => x.ActorName).HasMaxLength(120);
+            e.Property(x => x.ActorRole).HasMaxLength(20);
+            e.HasOne(x => x.Incident).WithMany(x => x.Logs).HasForeignKey(x => x.IncidentId).OnDelete(DeleteBehavior.Cascade);
+            e.HasIndex(x => x.IncidentId);
         });
     }
 }

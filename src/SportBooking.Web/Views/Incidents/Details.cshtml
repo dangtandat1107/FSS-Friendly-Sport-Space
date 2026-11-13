@@ -1,0 +1,126 @@
+@inject IImageStore Images
+@model Incident
+@{
+    ViewData["Title"] = "Sự cố " + Model.Code;
+    var staffSide = User.IsInRole("Staff") || User.IsInRole("Owner") || User.IsInRole("Admin");
+    var ownerSide = User.IsInRole("Owner") || User.IsInRole("Admin");
+    var role = User.IsInRole("Admin") ? "Admin" : User.IsInRole("Owner") ? "Owner" : "Staff";
+    var photo = Images.GetUrl("incidents", Model.Id.ToString());
+    var phone = Model.Reporter?.PhoneNumber;
+    var next = staffSide && Model.DuplicateOfId == null ? IncidentService.NextStatuses(Model.Status, role) : Array.Empty<IncidentStatus>();
+    Func<IncidentStatus, string> label = s => s switch
+    {
+        IncidentStatus.Acknowledged => "Tiếp nhận",
+        IncidentStatus.InProgress => "Bắt đầu xử lý",
+        IncidentStatus.Resolved => "Hoàn tất",
+        IncidentStatus.Rejected => "Từ chối (báo sai)",
+        IncidentStatus.Closed => "Đóng báo cáo",
+        _ => s.DisplayName()
+    };
+    Func<IncidentStatus, string> btnClass = s => s switch
+    {
+        IncidentStatus.Rejected => "btn-outline-danger",
+        IncidentStatus.Resolved => "btn-success",
+        IncidentStatus.Closed => "btn-secondary",
+        _ => "btn-primary"
+    };
+}
+<div class="d-flex flex-wrap justify-content-between align-items-start mb-3 gap-2">
+  <div>
+    <h3 class="mb-1">@Model.Code @(Model.IsRealTime ? "🚨 SOS" : "📝 Phản hồi")</h3>
+    <div>@await Html.PartialAsync("_IncidentBadges", Model)</div>
+  </div>
+  @if (Model.IsRealTime && Model.Category == IncidentCategory.Medical && Model.IsOpen)
+  {
+    <a class="btn btn-danger" href="tel:115">📞 Gọi 115 (cấp cứu)</a>
+  }
+</div>
+
+@if (Model.DuplicateOf != null)
+{
+  <div class="alert alert-info">Báo cáo này đã được gộp vào <a asp-action="Details" asp-route-id="@Model.DuplicateOf.Id">@Model.DuplicateOf.Code</a> vì cùng một sự cố cơ sở vật chất. Nhân viên xử lý báo cáo gốc.</div>
+}
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="panel-card p-4 mb-3">
+      <dl class="row mb-0">
+        <dt class="col-sm-4">Sân</dt><dd class="col-sm-8">@Model.Court?.Name</dd>
+        <dt class="col-sm-4">Loại sự cố</dt><dd class="col-sm-8">@Model.Category.DisplayName()@if (Model.Reason != null) { <span class="text-muted"> (@Model.Reason.Value.DisplayName())</span> }</dd>
+        @if (staffSide)
+        {
+          <dt class="col-sm-4">Người báo</dt><dd class="col-sm-8">@Model.Reporter?.FullName @if (!string.IsNullOrWhiteSpace(phone)) { <a href="tel:@phone">@phone</a> }</dd>
+        }
+        <dt class="col-sm-4">Gửi lúc</dt><dd class="col-sm-8">@Model.CreatedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+        <dt class="col-sm-4">@(Model.IsRealTime ? "Hạn tiếp nhận" : "Hạn phản hồi")</dt><dd class="col-sm-8">@Model.SlaDeadline.ToString("dd/MM/yyyy HH:mm")</dd>
+        @if (Model.HandledBy != null) { <dt class="col-sm-4">Người tiếp nhận</dt><dd class="col-sm-8">@Model.HandledBy.FullName</dd> }
+        @if (Model.ReportCount > 1) { <dt class="col-sm-4">Số người báo</dt><dd class="col-sm-8">@Model.ReportCount</dd> }
+      </dl>
+      <hr />
+      <div style="white-space:pre-line">@Model.Description</div>
+      @if (photo != null) { <img class="img-fluid rounded mt-3" style="max-height:320px" src="@photo" alt="Ảnh minh họa sự cố" /> }
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ResolutionNote))
+    {
+      <div class="panel-card p-4 mb-3"><h6>Ghi chú xử lý</h6><div style="white-space:pre-line">@Model.ResolutionNote</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Model.OwnerResponse))
+    {
+      <div class="panel-card p-4 mb-3">
+        <h6>Phản hồi của chủ sân <span class="badge bg-success">@Model.Compensation.DisplayName()</span></h6>
+        <div style="white-space:pre-line">@Model.OwnerResponse</div>
+      </div>
+    }
+  </div>
+
+  <div class="col-lg-5">
+    @if (next.Length > 0)
+    {
+      <div class="panel-card p-4 mb-3">
+        <h6>Cập nhật trạng thái</h6>
+        <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+          <textarea class="form-control mb-2" name="note" rows="3" maxlength="1000" placeholder="Ghi chú. Bắt buộc khi hoàn tất hoặc từ chối."></textarea>
+          <div class="d-flex flex-wrap gap-2">
+            @foreach (var s in next) { <button class="btn btn-sm @btnClass(s)" name="to" value="@s">@label(s)</button> }
+          </div>
+        </form>
+      </div>
+    }
+
+    @if (ownerSide && !Model.IsRealTime && Model.DuplicateOfId == null && Model.Status is not (IncidentStatus.Closed or IncidentStatus.Rejected))
+    {
+      <div class="panel-card p-4 mb-3">
+        <h6>Phản hồi khách và đề xuất bồi thường</h6>
+        <form asp-action="Respond" asp-route-id="@Model.Id" method="post">
+          <select class="form-select mb-2" name="compensation" asp-items="Html.GetEnumSelectList<CompensationType>()"></select>
+          <textarea class="form-control mb-2" name="response" rows="3" maxlength="1000" placeholder="Nội dung gửi tới khách (ít nhất 5 ký tự)">@Model.OwnerResponse</textarea>
+          <button class="btn btn-sm btn-success">Gửi phản hồi</button>
+          <div class="small text-muted mt-2">Hệ thống chỉ ghi nhận đề xuất và gửi email cho khách, không tự chuyển tiền hay tạo voucher.</div>
+        </form>
+      </div>
+    }
+
+    @if (staffSide)
+    {
+      <div class="panel-card p-4">
+        <h6>Nhật ký xử lý</h6>
+        <ul class="list-unstyled small mb-0">
+          @foreach (var l in Model.Logs)
+          {
+            <li class="mb-2">
+              <b>@l.CreatedAt.ToString("dd/MM HH:mm")</b> - @l.ActorName (@l.ActorRole): @l.Action
+              @if (l.ToStatus != null) { <span class="text-muted">@(l.FromStatus?.DisplayName() ?? "...") &rarr; @l.ToStatus.Value.DisplayName()</span> }
+              @if (!string.IsNullOrWhiteSpace(l.Note)) { <div class="text-muted">@l.Note</div> }
+            </li>
+          }
+        </ul>
+      </div>
+    }
+  </div>
+</div>
+
+<div class="mt-3">
+  @if (staffSide) { <a asp-action="Manage">Quay lại danh sách sự cố</a> }
+  else { <a asp-action="My">Quay lại báo cáo của tôi</a> }
+</div>

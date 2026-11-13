@@ -71,3 +71,61 @@ public enum SlotState
     Past,     // giờ đã qua
     Closed    // sân đang bảo trì
 }
+
+// ---------- Ghi nhận sự cố ----------
+// Không đổi thứ tự hoặc xóa giá trị đã có, vì database lưu số nguyên của enum
+
+public enum IncidentCategory
+{
+    [Display(Name = "Y tế, chấn thương")] Medical,
+    [Display(Name = "Cơ sở vật chất")] Facility,
+    [Display(Name = "Vận hành")] Operational,
+    [Display(Name = "An ninh, mất đồ")] Security
+}
+
+public enum IncidentSeverity
+{
+    [Display(Name = "Thấp")] Low,
+    [Display(Name = "Trung bình")] Medium,
+    [Display(Name = "Cao")] High,
+    [Display(Name = "Khẩn cấp (SOS)")] Critical
+}
+
+public enum IncidentStatus
+{
+    [Display(Name = "Mới báo")] Reported,
+    [Display(Name = "Đã tiếp nhận")] Acknowledged,
+    [Display(Name = "Đang xử lý")] InProgress,
+    [Display(Name = "Đã xử lý xong")] Resolved,
+    [Display(Name = "Đã leo thang lên Admin")] Escalated,
+    [Display(Name = "Đã đóng")] Closed,
+    [Display(Name = "Bị từ chối")] Rejected
+}
+
+// Ai tạo ra sự cố. Hiện chỉ khách hàng báo; các giá trị còn lại để mở rộng (nhân viên hoặc chủ sân báo hộ)
+public enum IncidentSource
+{
+    [Display(Name = "Khách hàng")] Customer,
+    [Display(Name = "Nhân viên")] Staff,
+    [Display(Name = "Chủ sân")] Owner,
+    [Display(Name = "Hệ thống")] SystemAuto
+}
+
+// Lý do khiếu nại ở luồng phản hồi sau giờ chơi (khách chọn từ danh sách)
+public enum ComplaintReason
+{
+    [Display(Name = "Đau nhức, chấn thương sau buổi chơi")] LateSymptoms,
+    [Display(Name = "Sân không đúng mô tả")] NotAsDescribed,
+    [Display(Name = "Để quên hoặc mất đồ")] LostItem,
+    [Display(Name = "Khiếu nại thanh toán")] PaymentDispute,
+    [Display(Name = "Lý do khác")] Other
+}
+
+// Chủ sân đề xuất bồi thường cho luồng phản hồi. Hệ thống chỉ ghi nhận, không tự chuyển tiền
+public enum CompensationType
+{
+    [Display(Name = "Chưa đề xuất")] None,
+    [Display(Name = "Lời xin lỗi")] Apology,
+    [Display(Name = "Voucher giảm giá")] Voucher,
+    [Display(Name = "Hoàn tiền")] Refund
+}

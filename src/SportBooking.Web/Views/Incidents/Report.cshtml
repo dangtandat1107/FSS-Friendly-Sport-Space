@@ -1,0 +1,100 @@
+@model IncidentReportVm
+@{
+    ViewData["Title"] = "Báo sự cố";
+    var sos = Model.Mode == ReportMode.Sos;
+    var feedback = Model.Mode == ReportMode.Feedback;
+}
+<h3 class="mb-1">Báo sự cố</h3>
+<div class="text-muted mb-3"><b>@Model.CourtName</b>, @Model.TimeLabel</div>
+
+@if (!ViewData.ModelState.IsValid)
+{
+  <div class="alert alert-danger">
+    @foreach (var e in ViewData.ModelState.Values.SelectMany(v => v.Errors)) { <div>@e.ErrorMessage</div> }
+  </div>
+}
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <div class="panel-card p-4 h-100 @(sos ? "incident-card-sos" : "incident-card-off")">
+      <h5>🚨 Cần hỗ trợ ngay</h5>
+      <p class="text-muted small">Chấn thương, ngất xỉu, ẩu đả hoặc sự cố khẩn cấp ngay tại sân. Nhân viên và chủ sân được báo tức thì. Chỉ dùng được trong giờ chơi đã đặt.</p>
+      @if (sos && Model.HasSos)
+      {
+        <div class="alert alert-info mb-0">Bạn đã gửi SOS cho lịch này. <a asp-action="My">Xem báo cáo của tôi</a></div>
+      }
+      else if (sos)
+      {
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" asp-for="BookingId" />
+          <div class="mb-3">
+            <div class="form-label">Loại sự cố</div>
+            @foreach (var c in Enum.GetValues<IncidentCategory>())
+            {
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="Category" id="cat-@c" value="@c" checked="@(Model.Category == c)" />
+                <label class="form-check-label" for="cat-@c">@c.DisplayName()</label>
+              </div>
+            }
+          </div>
+          <div class="mb-3">
+            <label class="form-label" asp-for="Description"></label>
+            <textarea class="form-control" asp-for="Description" rows="3" maxlength="1000" placeholder="Chuyện gì đang xảy ra? Vị trí trong sân? (ít nhất 10 ký tự)"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="sos-photo">Ảnh minh họa (không bắt buộc)</label>
+            <input class="form-control" type="file" name="Photo" id="sos-photo" accept="image/jpeg,image/png,image/webp" />
+          </div>
+          <button class="btn btn-danger">🚨 Gửi SOS</button>
+          <a class="btn btn-outline-danger" href="tel:115">📞 Gọi 115 (cấp cứu)</a>
+        </form>
+      }
+      else
+      {
+        <div class="text-muted">
+          @(Model.Mode == ReportMode.NotYet ? "Chưa đến giờ chơi nên chưa dùng được." : "Giờ chơi đã kết thúc, hãy dùng mục gửi phản hồi bên cạnh.")
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="col-lg-6">
+    <div class="panel-card p-4 h-100 @(feedback ? "incident-card-fb" : "incident-card-off")">
+      <h5>📝 Gửi phản hồi, khiếu nại</h5>
+      <p class="text-muted small">Về nhà mới thấy đau nhức, sân không đúng mô tả, để quên đồ hoặc khiếu nại thanh toán. Gửi được trong @IncidentPolicy.FeedbackWindowHours giờ sau khi hết giờ chơi. Chủ sân sẽ xem xét và phản hồi qua email.</p>
+      @if (feedback && Model.HasFeedback)
+      {
+        <div class="alert alert-info mb-0">Bạn đã gửi phản hồi cho lịch này. <a asp-action="My">Xem báo cáo của tôi</a></div>
+      }
+      else if (feedback)
+      {
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" asp-for="BookingId" />
+          <div class="mb-3">
+            <label class="form-label" asp-for="Reason">Lý do</label>
+            <select class="form-select" asp-for="Reason" asp-items="Html.GetEnumSelectList<ComplaintReason>()"><option value="">-- Chọn lý do --</option></select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" asp-for="Description"></label>
+            <textarea class="form-control" asp-for="Description" rows="3" maxlength="1000" placeholder="Mô tả chi tiết để chủ sân xử lý nhanh (ít nhất 10 ký tự)"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="fb-photo">Ảnh minh họa (không bắt buộc)</label>
+            <input class="form-control" type="file" name="Photo" id="fb-photo" accept="image/jpeg,image/png,image/webp" />
+          </div>
+          <button class="btn btn-success">Gửi phản hồi</button>
+        </form>
+      }
+      else
+      {
+        <div class="text-muted">
+          @(Model.Mode == ReportMode.TooLate
+              ? "Đã quá " + IncidentPolicy.FeedbackWindowHours + " giờ kể từ khi hết giờ chơi nên hệ thống không nhận phản hồi nữa. Vui lòng liên hệ trực tiếp chủ sân."
+              : "Dùng được sau khi hết giờ chơi.")
+        </div>
+      }
+    </div>
+  </div>
+</div>
+
+<div class="mt-3"><a asp-controller="Bookings" asp-action="My">Quay lại lịch của tôi</a></div>

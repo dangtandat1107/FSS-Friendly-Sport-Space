@@ -5,7 +5,7 @@ namespace SportBooking.Web.Data;
 
 public static class DbSeeder
 {
-    public static readonly string[] Roles = { "Admin", "Owner", "Customer" };
+    public static readonly string[] Roles = { "Admin", "Owner", "Customer", "Staff" };
 
     private record SampleCourt(SportType Sport, string Name, string District, string Address, decimal Price,
         CourtFormat Format, CourtSurface Surface, bool Indoor);
@@ -78,6 +78,16 @@ public static class DbSeeder
         await db.SaveChangesAsync();
 
         await SeedDemoReviewsAsync(db, customer);
+
+        // Nhân viên demo phụ trách 3 sân (cầu lông A1, bóng đá mini B1, tennis C1) để thử luồng sự cố
+        var staff = await EnsureUser(userMgr, "staff@demo.com", "Nhân viên Demo", "Staff@123", "Staff");
+        if (!await db.Staffs.AnyAsync(s => s.UserId == staff.Id))
+        {
+            var names = new[] { "Sân cầu lông A1", "Sân bóng đá mini B1", "Sân tennis C1" };
+            foreach (var c in await db.Courts.Where(c => names.Contains(c.Name)).ToListAsync())
+                db.Staffs.Add(new Staff { UserId = staff.Id, CourtId = c.Id });
+            await db.SaveChangesAsync();
+        }
     }
 
     // Giao diện không cho đặt giờ trong quá khứ, nên cần lịch đã qua và đánh giá mẫu để thử ngay luồng đánh giá
