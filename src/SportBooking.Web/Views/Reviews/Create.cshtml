@@ -1,0 +1,34 @@
+@model ReviewFormVm
+@{ ViewData["Title"] = "Đánh giá sân"; }
+<div class="row"><div class="col-lg-6">
+  <div class="panel-card p-4">
+    <h4 class="mb-1">Đánh giá sân</h4>
+    <div class="text-muted mb-3"><b>@Model.CourtName</b>, @Model.PlayedAt</div>
+
+    <form method="post">
+      <input type="hidden" asp-for="BookingId" />
+      <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+      <div class="mb-3">
+        <label class="form-label d-block">Bạn chấm sân mấy sao?</label>
+        <div class="star-input" role="radiogroup" aria-label="Số sao">
+          @for (var i = 5; i >= 1; i--)
+          {
+            <input type="radio" name="Rating" id="star-@i" value="@i" checked="@(Model.Rating == i)" />
+            <label for="star-@i" title="@i sao">★</label>
+          }
+        </div>
+        <span asp-validation-for="Rating" class="text-danger d-block"></span>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" asp-for="Comment"></label>
+        <textarea class="form-control" asp-for="Comment" rows="4" maxlength="1000" placeholder="Sân, mặt sân, ánh sáng, nhân viên... (không bắt buộc)"></textarea>
+        <span asp-validation-for="Comment" class="text-danger"></span>
+      </div>
+
+      <button class="btn btn-success">Gửi đánh giá</button>
+      <a class="btn btn-link" asp-controller="Bookings" asp-action="My">Hủy</a>
+    </form>
+  </div>
+</div></div>

@@ -12,6 +12,10 @@
   <div class="p-3 d-flex flex-column flex-grow-1">
     <div class="small fw-semibold" style="color:var(--sport)">@m.Label</div>
     <h5 class="mb-1">@Model.Name</h5>
+    <div class="small mb-1">
+      @if (Model.ReviewCount > 0) { <b>@Model.AvgRating.GetValueOrDefault().Stars()</b> <span class="text-muted">(@Model.ReviewCount đánh giá)</span> }
+      else { <span class="text-muted">Chưa có đánh giá</span> }
+    </div>
     <div class="text-muted small mb-2">@Model.District, @Model.Address</div>
     <div>
       @foreach (var t in CourtOptions.Tags(Model)) { <span class="tag">@t</span> }

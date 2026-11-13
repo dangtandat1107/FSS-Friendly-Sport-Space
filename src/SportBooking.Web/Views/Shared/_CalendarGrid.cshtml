@@ -1,0 +1,131 @@
+@model CalendarVm
+@{
+    // Lịch dạng lưới: cột là khung giờ, hàng là sân. Xanh = còn trống, đỏ = đã đặt, vàng = đang có người thanh toán.
+    var isCustomer = User.IsInRole("Customer");
+    var loggedIn = User.Identity?.IsAuthenticated == true;
+    var hours = Enumerable.Range(IBookingService.OpenHour, IBookingService.CloseHour - IBookingService.OpenHour).ToList();
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+}
+<div class="legend mb-2">
+  <span><i class="lg"></i>Còn trống</span>
+  <span><i class="lr"></i>Đã đặt</span>
+  <span><i class="ly"></i>Đang thanh toán (giữ chỗ tối đa @IBookingService.PaymentTimeoutMinutes phút)</span>
+  <span><i class="lo"></i>Đã qua hoặc sân bảo trì</span>
+</div>
+
+<div class="cal-wrap">
+  <table class="cal-grid">
+    <thead>
+      <tr>
+        <th class="cal-court">Sân</th>
+        @foreach (var h in hours) { <th scope="col">@h.ToString("00"):00</th> }
+      </tr>
+    </thead>
+    <tbody>
+      @foreach (var c in Model.Courts)
+      {
+        var sub = c.PricePerHour.ToString("N0") + " đ/giờ"
+                  + (c.ReviewCount > 0 ? " · " + c.AvgRating.GetValueOrDefault().Stars() : "")
+                  + (c.Status == CourtStatus.Maintenance ? " · Bảo trì" : "");
+        <tr>
+          <th scope="row" class="cal-court">
+            <a asp-controller="Courts" asp-action="Details" asp-route-id="@c.Id" asp-route-date="@Model.Date.ToString("yyyy-MM-dd")">@c.Name</a>
+            <small>@sub</small>
+          </th>
+          @foreach (var h in hours)
+          {
+            var state = Model.Grid[c.Id][h];
+            var range = $"{h:00}:00 - {h + 1:00}:00";
+            <td>
+              @if (state == SlotState.Free)
+              {
+                if (isCustomer)
+                {
+                  <button type="button" class="cal-cell cal-free" data-court="@c.Id" data-name="@c.Name" data-hour="@h" data-price="@c.PricePerHour.ToString("0")" title="@c.Name, @range. Bấm để đặt">Trống</button>
+                }
+                else if (!loggedIn)
+                {
+                  <a class="cal-cell cal-free" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl" title="Đăng nhập để đặt sân">Trống</a>
+                }
+                else
+                {
+                  <span class="cal-cell cal-free cal-static" title="Chỉ tài khoản khách hàng mới đặt được">Trống</span>
+                }
+              }
+              else if (state == SlotState.Booked)
+              {
+                <span class="cal-cell cal-booked" title="@range đã có người đặt">Đã đặt</span>
+              }
+              else if (state == SlotState.Held)
+              {
+                <span class="cal-cell cal-held" title="@range đang có người thanh toán. Nếu họ không thanh toán kịp, ô này sẽ trống lại">Đang giữ</span>
+              }
+              else
+              {
+                <span class="cal-cell cal-off" title="@(state == SlotState.Closed ? "Sân đang bảo trì" : "Giờ đã qua")">-</span>
+              }
+            </td>
+          }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (isCustomer)
+{
+  <dialog id="book-dialog" class="book-dialog">
+    <form asp-controller="Bookings" asp-action="Create" method="post">
+      <h5 class="mb-3">Đặt sân</h5>
+      <input type="hidden" name="courtId" id="bk-court" />
+      <input type="hidden" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+      <input type="hidden" name="hour" id="bk-hour" />
+      <dl class="book-info">
+        <dt>Sân</dt><dd id="bk-name"></dd>
+        <dt>Ngày</dt><dd>@Model.Date.ToString("dd/MM/yyyy")</dd>
+        <dt>Bắt đầu</dt><dd id="bk-start"></dd>
+      </dl>
+      <label class="form-label" for="bk-hours">Thời lượng</label>
+      <select name="hours" id="bk-hours" class="form-select mb-3"></select>
+      <div class="d-flex justify-content-between mb-3"><span class="text-muted">Tạm tính</span><b id="bk-total"></b></div>
+      <div class="small text-muted mb-3">Sau khi xác nhận, bạn có @IBookingService.PaymentTimeoutMinutes phút để thanh toán, quá hạn lịch sẽ tự hủy.</div>
+      <button class="btn btn-success">Xác nhận đặt sân</button>
+      <button type="button" class="btn btn-link" id="bk-cancel">Hủy</button>
+    </form>
+  </dialog>
+  <script>
+    (function () {
+      var dlg = document.getElementById('book-dialog');
+      var sel = document.getElementById('bk-hours');
+      var price = 0, startHour = 0;
+      function pad(n) { return (n < 10 ? '0' : '') + n; }
+      function total() { document.getElementById('bk-total').textContent = (price * (+sel.value)).toLocaleString('vi-VN') + ' đ'; }
+
+      document.querySelectorAll('.cal-grid button.cal-free').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          startHour = +btn.dataset.hour; price = +btn.dataset.price;
+
+          // Cho chọn thêm giờ nếu các ô liền sau cũng còn trống (tối đa 4 giờ)
+          var max = 1, td = btn.closest('td').nextElementSibling;
+          while (max < 4 && td && td.querySelector('button.cal-free')) { max++; td = td.nextElementSibling; }
+          sel.innerHTML = '';
+          for (var n = 1; n <= max; n++) {
+            var o = document.createElement('option');
+            o.value = n; o.textContent = n + ' giờ (' + pad(startHour) + ':00 - ' + pad(startHour + n) + ':00)';
+            sel.appendChild(o);
+          }
+
+          document.getElementById('bk-court').value = btn.dataset.court;
+          document.getElementById('bk-hour').value = startHour;
+          document.getElementById('bk-name').textContent = btn.dataset.name;
+          document.getElementById('bk-start').textContent = pad(startHour) + ':00';
+          total();
+          dlg.showModal();
+        });
+      });
+      sel.addEventListener('change', total);
+      document.getElementById('bk-cancel').addEventListener('click', function () { dlg.close(); });
+      dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });   // bấm ra ngoài thì đóng
+    })();
+  </script>
+}

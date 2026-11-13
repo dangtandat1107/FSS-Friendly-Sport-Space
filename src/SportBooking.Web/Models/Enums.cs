@@ -61,3 +61,13 @@ public enum CourtSurface
     [Display(Name = "Sàn gỗ")] Wood = 5,
     [Display(Name = "Thảm nhựa PVC")] PvcMat = 6
 }
+
+// Trạng thái một ô (sân x khung giờ) trên lịch dạng lưới
+public enum SlotState
+{
+    Free,     // còn trống (xanh lá)
+    Booked,   // đã đặt, lịch đã xác nhận (đỏ)
+    Held,     // đang có người giữ chỗ, chờ thanh toán (vàng)
+    Past,     // giờ đã qua
+    Closed    // sân đang bảo trì
+}

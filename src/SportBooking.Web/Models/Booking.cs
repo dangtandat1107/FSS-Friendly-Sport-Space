@@ -18,6 +18,10 @@ public class Booking
     public DateTime? ExpiresAt { get; set; }
 
     public List<Payment> Payments { get; set; } = new();
+    public Review? Review { get; set; }   // đánh giá của khách cho lịch này (nếu có)
+
+    // Mã đơn hiển thị cho khách, ví dụ FSS-00042. Suy ra từ Id nên không cần cột riêng trong database
+    public string Code => $"FSS-{Id:D5}";
 
     // Chỉ có getter nên EF không tạo cột này trong database
     public bool IsExpired => Status == BookingStatus.Pending && ExpiresAt != null && ExpiresAt <= DateTime.Now;

@@ -6,7 +6,10 @@
     var surfaces = sport != null ? CourtOptions.SurfacesFor(sport.Value) : Array.Empty<CourtSurface>();
     var hasFilter = Model.Format != null || Model.Surface != null || Model.Indoor != null || !string.IsNullOrWhiteSpace(Model.District);
 }
-<h3 class="mb-3">Tìm sân</h3>
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h3 class="mb-0">Tìm sân</h3>
+  <a class="btn btn-sm btn-outline-success" asp-action="Calendar" asp-route-sport="@sport">Xem lịch trống dạng lưới</a>
+</div>
 
 <!-- Bước 1: chọn môn -->
 <div class="filter-row">
@@ -46,13 +49,16 @@
   </div>
 }
 
-<!-- Trong nhà hay ngoài trời -->
-<div class="filter-row">
-  <span class="filter-label">Vị trí</span>
-  <a class="chip @(Model.Indoor == null ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-district="@Model.District">Tất cả</a>
-  <a class="chip @(Model.Indoor == true ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-indoor="true" asp-route-district="@Model.District">Trong nhà</a>
-  <a class="chip @(Model.Indoor == false ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-indoor="false" asp-route-district="@Model.District">Ngoài trời</a>
-</div>
+@if (sport == null || CourtOptions.HasIndoorOption(sport.Value))
+{
+  <!-- Trong nhà hay ngoài trời -->
+  <div class="filter-row">
+    <span class="filter-label">Vị trí</span>
+    <a class="chip @(Model.Indoor == null ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-district="@Model.District">Tất cả</a>
+    <a class="chip @(Model.Indoor == true ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-indoor="true" asp-route-district="@Model.District">Trong nhà</a>
+    <a class="chip @(Model.Indoor == false ? "active" : "")" asp-action="Index" asp-route-sport="@sport" asp-route-format="@Model.Format" asp-route-surface="@Model.Surface" asp-route-indoor="false" asp-route-district="@Model.District">Ngoài trời</a>
+  </div>
+}
 
 <form method="get" class="d-flex gap-2 mb-4 mt-3" style="max-width:34rem">
   @if (sport != null) { <input type="hidden" name="sport" value="@sport" /> }

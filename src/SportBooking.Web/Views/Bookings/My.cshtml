@@ -8,7 +8,7 @@
   var paid = b.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Paid);
   var awaiting = b.Payments.FirstOrDefault(p => p.Status == PaymentStatus.AwaitingConfirmation);
   <tr>
-    <td>@b.Court?.Name</td>
+    <td>@b.Court?.Name<div class="small text-muted">@b.Code</div></td>
     <td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td>
     <td>@b.TotalPrice.ToString("N0")</td>
     <td>
@@ -36,6 +36,17 @@
       else if (b.Status == BookingStatus.Pending && !b.IsExpired)
       {
         <a class="btn btn-sm btn-success" asp-controller="Payments" asp-action="Pay" asp-route-bookingId="@b.Id">Thanh toán</a>
+      }
+      @if (b.Status == BookingStatus.Confirmed && b.EndTime <= DateTime.Now)
+      {
+        if (b.Review != null)
+        {
+          <span class="small text-muted">Bạn đã đánh giá @(b.Review.Rating)⭐</span>
+        }
+        else
+        {
+          <a class="btn btn-sm btn-outline-warning" asp-controller="Reviews" asp-action="Create" asp-route-bookingId="@b.Id">Đánh giá</a>
+        }
       }
       @if (b.Status != BookingStatus.Cancelled && (awaiting != null || !b.IsExpired) && b.StartTime > DateTime.Now)
       {

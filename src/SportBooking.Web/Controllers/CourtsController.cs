@@ -25,6 +25,9 @@ public class CourtsController : Controller
     // ---------- Công khai ----------
     public async Task<IActionResult> Index(SportType? sport, CourtFormat? format, CourtSurface? surface, bool? indoor, string? district)
     {
+        // Bóng đá không có lọc trong nhà/ngoài trời: bỏ giá trị cũ còn sót trên URL (ví dụ đang lọc "Trong nhà" ở "Tất cả môn" rồi bấm Bóng đá)
+        if (sport != null && !CourtOptions.HasIndoorOption(sport.Value)) indoor = null;
+
         var q = _db.Courts.AsNoTracking().AsQueryable();
         if (sport != null) q = q.Where(c => c.SportType == sport);
         if (format is { } f && f != CourtFormat.None) q = q.Where(c => c.CourtFormat == f);
@@ -37,6 +40,7 @@ public class CourtsController : Controller
             Courts = await q.OrderBy(c => c.Name).ToListAsync(),
             Sport = sport, Format = format, Surface = surface, Indoor = indoor, District = district
         };
+        await _db.LoadRatingsAsync(vm.Courts);
 
         // Số sân đang mở theo từng loại, để hiện cạnh nút lọc "Sân 5 người (2)"
         if (sport != null)
@@ -53,11 +57,45 @@ public class CourtsController : Controller
     {
         var court = await _db.Courts.AsNoTracking().FirstOrDefaultAsync(c => c.Id == id);
         if (court == null) return NotFound();
+        await _db.LoadRatingsAsync(new[] { court });
 
-        // Không chọn ngày: mặc định là hôm nay, trừ khi hôm nay đã hết khung giờ cuối thì hiện ngày mai
+        var d = date?.Date ?? DefaultDate();
+        var reviews = await _db.Reviews.AsNoTracking().Include(r => r.Customer)
+            .Where(r => r.CourtId == id).OrderByDescending(r => r.CreatedAt).Take(20).ToListAsync();
+
+        return View(new CourtDetailsVm
+        {
+            Court = court, Date = d, Reviews = reviews,
+            Calendar = new CalendarVm
+            {
+                Date = d, Courts = new List<Court> { court },
+                Grid = await _bookings.GetDayGridAsync(new[] { court }, d)
+            }
+        });
+    }
+
+    // Lịch dạng lưới: hàng là sân, cột là khung giờ, xem được nhiều sân của một môn trong cùng một ngày
+    public async Task<IActionResult> Calendar(SportType? sport, DateTime? date)
+    {
+        var q = _db.Courts.AsNoTracking().AsQueryable();
+        if (sport != null) q = q.Where(c => c.SportType == sport);
+        var courts = await q.OrderBy(c => c.SportType).ThenBy(c => c.Name).ToListAsync();
+        await _db.LoadRatingsAsync(courts);
+
+        var d = date?.Date ?? DefaultDate();
+        if (d < DateTime.Today) d = DateTime.Today;
+        return View(new CalendarVm
+        {
+            Date = d, Sport = sport, Courts = courts,
+            Grid = await _bookings.GetDayGridAsync(courts, d)
+        });
+    }
+
+    // Không chọn ngày: mặc định là hôm nay, trừ khi hôm nay đã hết khung giờ cuối thì hiện ngày mai
+    private static DateTime DefaultDate()
+    {
         var lastSlotStart = DateTime.Today.AddHours(IBookingService.CloseHour - 1);
-        var d = date?.Date ?? (DateTime.Now > lastSlotStart ? DateTime.Today.AddDays(1) : DateTime.Today);
-        return View(new CourtDetailsVm { Court = court, Date = d, BusyHours = await _bookings.GetBusyHoursAsync(id, d) });
+        return DateTime.Now > lastSlotStart ? DateTime.Today.AddDays(1) : DateTime.Today;
     }
 
     // ---------- Chủ sân / Admin ----------
@@ -155,6 +193,9 @@ public class CourtsController : Controller
         if (formats.Length > 0 && !formats.Contains(vm.CourtFormat))
             ModelState.AddModelError(nameof(vm.CourtFormat), "Vui lòng chọn loại sân.");
         if (formats.Length == 0) vm.CourtFormat = CourtFormat.None;
+
+        // Bóng đá luôn ngoài trời: ép về false ở server, không chỉ ẩn bằng JavaScript
+        if (!CourtOptions.HasIndoorOption(vm.SportType)) vm.IsIndoor = false;
 
         if (!CourtOptions.SurfacesFor(vm.SportType).Contains(vm.Surface)) vm.Surface = CourtSurface.Unspecified;
 

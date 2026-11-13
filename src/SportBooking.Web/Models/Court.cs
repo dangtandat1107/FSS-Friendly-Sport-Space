@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace SportBooking.Web.Models;
 
 public class Court
@@ -17,4 +18,9 @@ public class Court
     public string OwnerId { get; set; } = "";
     public ApplicationUser? Owner { get; set; }
     public List<Booking> Bookings { get; set; } = new();
+
+    // Điểm trung bình và số lượt đánh giá. Không lưu trong bảng Courts, được tính từ bảng Reviews
+    // bởi ReviewExtensions.LoadRatingsAsync trước khi hiển thị.
+    [NotMapped] public double? AvgRating { get; set; }
+    [NotMapped] public int ReviewCount { get; set; }
 }

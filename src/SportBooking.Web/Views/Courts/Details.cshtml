@@ -5,9 +5,7 @@
     var m = c.SportType.Meta();
     var now = DateTime.Now;
     ViewData["Title"] = c.Name;
-    var groups = new[] { (Label: "Sáng", Start: 6, End: 12), (Label: "Chiều", Start: 12, End: 18), (Label: "Tối", Start: 18, End: 22) };
     string[] dow = { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
-    var isCustomer = User.IsInRole("Customer");
     var image = Images.GetUrl("courts", c.Id.ToString()) ?? m.Image;   // ảnh riêng của sân, không có thì dùng ảnh của môn
 }
 <div style="--sport:@m.Color">
@@ -18,6 +16,7 @@
       <h1>@c.Name</h1>
       <div class="mt-2">@foreach (var t in CourtOptions.Tags(c)) { <span class="tag">@t</span> }</div>
       <div class="mt-2">@c.District, @c.Address. <b>@c.PricePerHour.ToString("N0") đ/giờ</b></div>
+      <div class="mt-1">@if (c.ReviewCount > 0) { <b>@c.AvgRating.GetValueOrDefault().Stars()</b> <span>(@c.ReviewCount đánh giá)</span> } else { <span>Chưa có đánh giá</span> }</div>
     </div>
   </section>
 
@@ -46,50 +45,35 @@
   }
 
   <h4>Khung giờ ngày @Model.Date.ToString("dd/MM/yyyy")</h4>
-  <div class="legend mb-3"><span><i></i>Còn trống</span><span><i class="b"></i>Đã có người đặt</span><span><i class="p"></i>Đã qua</span></div>
-
-  @foreach (var g in groups)
-  {
-    var startH = Math.Max(g.Start, IBookingService.OpenHour);
-    var endH = Math.Min(g.End, IBookingService.CloseHour);
-    if (startH >= endH) { continue; }
-    <div class="mb-4">
-      <div class="fw-semibold mb-2">@g.Label</div>
-      <div class="slot-row">
-        @for (var h = startH; h < endH; h++)
-        {
-          var busy = Model.BusyHours.Contains(h);
-          var past = Model.Date.Date.AddHours(h) < now;
-          if (busy)
-          {
-            <span class="slot slot-busy">@h:00 - @(h + 1):00</span>
-          }
-          else if (past || c.Status != CourtStatus.Active)
-          {
-            <span class="slot slot-past">@h:00 - @(h + 1):00</span>
-          }
-          else if (isCustomer)
-          {
-            <form asp-controller="Bookings" asp-action="Create" method="post">
-              <input type="hidden" name="courtId" value="@c.Id" />
-              <input type="hidden" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
-              <input type="hidden" name="hour" value="@h" />
-              <button class="slot" onclick="return confirm('Đặt @h:00 - @(h + 1):00 ?')">@h:00 - @(h + 1):00</button>
-            </form>
-          }
-          else
-          {
-            <span class="slot">@h:00 - @(h + 1):00</span>
-          }
-        }
-      </div>
-    </div>
-  }
+  @await Html.PartialAsync("_CalendarGrid", Model.Calendar)
+  <div class="small mt-2"><a asp-action="Calendar" asp-route-sport="@c.SportType" asp-route-date="@Model.Date.ToString("yyyy-MM-dd")">Xem lịch của tất cả sân @m.Label.ToLower()</a></div>
 
   @if (User.Identity?.IsAuthenticated != true)
   {
     <div class="panel-card p-3">
       <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">Đăng nhập</a> bằng tài khoản khách hàng để chọn khung giờ và đặt sân.
+    </div>
+  }
+
+  <h4 class="mt-5 mb-3">Đánh giá từ khách đã đặt sân</h4>
+  @if (Model.Reviews.Count == 0)
+  {
+    <div class="panel-card p-3 text-muted">Chưa có đánh giá nào. Sau khi chơi xong, khách có thể đánh giá sân trong mục "Lịch của tôi".</div>
+  }
+  else
+  {
+    <div class="d-grid gap-2">
+      @foreach (var r in Model.Reviews)
+      {
+        <div class="panel-card p-3">
+          <div class="d-flex justify-content-between">
+            <b>@(r.Customer?.FullName ?? "Khách")</b>
+            <span class="text-muted small">@r.CreatedAt.ToString("dd/MM/yyyy")</span>
+          </div>
+          <div class="rating-stars" aria-label="@r.Rating trên 5 sao">@(new string('★', r.Rating))<span class="off">@(new string('★', 5 - r.Rating))</span></div>
+          @if (!string.IsNullOrWhiteSpace(r.Comment)) { <div class="mt-1" style="white-space:pre-line">@r.Comment</div> }
+        </div>
+      }
     </div>
   }
 </div>

@@ -56,7 +56,7 @@ public static class DbSeeder
         var userMgr = sp.GetRequiredService<UserManager<ApplicationUser>>();
         await EnsureUser(userMgr, "admin@demo.com", "Quản trị viên", "Admin@123", "Admin");
         var owner = await EnsureUser(userMgr, "owner@demo.com", "Chủ sân Demo", "Owner@123", "Owner");
-        await EnsureUser(userMgr, "customer@demo.com", "Khách Demo", "Customer@123", "Customer");
+        var customer = await EnsureUser(userMgr, "customer@demo.com", "Khách Demo", "Customer@123", "Customer");
 
         // Thêm sân mẫu chưa có (theo tên). Sân mẫu đã có từ trước mà chưa có thông tin loại sân thì được bổ sung.
         foreach (var s in Samples)
@@ -74,6 +74,44 @@ public static class DbSeeder
             {
                 existing.CourtFormat = s.Format; existing.Surface = s.Surface; existing.IsIndoor = s.Indoor;
             }
+        }
+        await db.SaveChangesAsync();
+
+        await SeedDemoReviewsAsync(db, customer);
+    }
+
+    // Giao diện không cho đặt giờ trong quá khứ, nên cần lịch đã qua và đánh giá mẫu để thử ngay luồng đánh giá
+    // và điểm trung bình trên thẻ sân. Chỉ tạo khi khách demo chưa có lịch nào đã kết thúc.
+    private static async Task SeedDemoReviewsAsync(AppDbContext db, ApplicationUser customer)
+    {
+        var now = DateTime.Now;
+        if (await db.Bookings.AnyAsync(b => b.CustomerId == customer.Id && b.EndTime < now)) return;
+
+        var demo = new[]
+        {
+            (CourtName: "Sân bóng đá mini B1", DaysAgo: 1, Hour: 18, Rating: 5, Comment: "Cỏ êm, đèn sáng, đá rất đã."),
+            (CourtName: "Sân cầu lông A1",     DaysAgo: 2, Hour: 19, Rating: 4, Comment: "Sân sạch, thảm tốt. Chỉ hơi đông vào giờ cao điểm."),
+            (CourtName: "Sân tennis C1",       DaysAgo: 3, Hour: 17, Rating: 0, Comment: "")   // chưa đánh giá, dùng để thử form đánh giá
+        };
+        foreach (var d in demo)
+        {
+            var court = await db.Courts.FirstOrDefaultAsync(c => c.Name == d.CourtName);
+            if (court == null) continue;
+
+            var start = DateTime.Today.AddDays(-d.DaysAgo).AddHours(d.Hour);
+            var booking = new Booking
+            {
+                CourtId = court.Id, CustomerId = customer.Id,
+                StartTime = start, EndTime = start.AddHours(1), TotalPrice = court.PricePerHour,
+                Status = BookingStatus.Confirmed, CreatedAt = start.AddDays(-1)
+            };
+            db.Bookings.Add(booking);
+            if (d.Rating > 0)
+                db.Reviews.Add(new Review
+                {
+                    Booking = booking, CourtId = court.Id, CustomerId = customer.Id,
+                    Rating = d.Rating, Comment = d.Comment, CreatedAt = start.AddHours(2)
+                });
         }
         await db.SaveChangesAsync();
     }

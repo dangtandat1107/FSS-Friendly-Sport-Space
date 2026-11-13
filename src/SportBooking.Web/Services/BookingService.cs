@@ -13,7 +13,8 @@ public interface IBookingService
     const int CloseHour = 22;
     const int PaymentTimeoutMinutes = 15;   // thời gian giữ chỗ chờ thanh toán
     Task<BookingResult> CreateAsync(string customerId, int courtId, DateTime start, int hours);
-    Task<HashSet<int>> GetBusyHoursAsync(int courtId, DateTime date);
+    // Trạng thái từng giờ của từng sân trong một ngày, dùng để vẽ lịch dạng lưới: grid[courtId][hour]
+    Task<Dictionary<int, Dictionary<int, SlotState>>> GetDayGridAsync(IReadOnlyCollection<Court> courts, DateTime date);
 }
 
 public class BookingService : IBookingService
@@ -70,20 +71,39 @@ public class BookingService : IBookingService
         }
     }
 
-    public async Task<HashSet<int>> GetBusyHoursAsync(int courtId, DateTime date)
+    public async Task<Dictionary<int, Dictionary<int, SlotState>>> GetDayGridAsync(IReadOnlyCollection<Court> courts, DateTime date)
     {
         var d0 = date.Date; var d1 = d0.AddDays(1);
         var now = DateTime.Now;
-        var list = await _db.Bookings
-            .Where(b => b.CourtId == courtId && b.StartTime < d1 && b.EndTime > d0 &&
+        var ids = courts.Select(c => c.Id).ToList();
+
+        // Cùng điều kiện "đang giữ chỗ" với CreateAsync: đã xác nhận, hoặc đang chờ thanh toán mà chưa quá hạn
+        var list = await _db.Bookings.AsNoTracking()
+            .Where(b => ids.Contains(b.CourtId) && b.StartTime < d1 && b.EndTime > d0 &&
                 (b.Status == BookingStatus.Confirmed ||
                  (b.Status == BookingStatus.Pending && (b.ExpiresAt == null || b.ExpiresAt > now))))
-            .Select(b => new { b.StartTime, b.EndTime }).ToListAsync();
+            .Select(b => new { b.CourtId, b.StartTime, b.EndTime, b.Status }).ToListAsync();
 
-        var busy = new HashSet<int>();
+        var grid = new Dictionary<int, Dictionary<int, SlotState>>();
+        foreach (var c in courts)
+        {
+            var row = new Dictionary<int, SlotState>();
+            for (var h = IBookingService.OpenHour; h < IBookingService.CloseHour; h++)
+                row[h] = c.Status != CourtStatus.Active ? SlotState.Closed
+                       : d0.AddHours(h) < now ? SlotState.Past
+                       : SlotState.Free;
+            grid[c.Id] = row;
+        }
+
         foreach (var b in list)
-            for (var h = b.StartTime; h < b.EndTime; h = h.AddHours(1))
-                if (h.Date == d0) busy.Add(h.Hour);
-        return busy;
+            for (var t = b.StartTime; t < b.EndTime; t = t.AddHours(1))
+            {
+                if (t.Date != d0) continue;
+                var row = grid[b.CourtId];
+                // Sân bảo trì giữ nguyên; ô đã xác nhận (đỏ) không bị ô "đang giữ" (vàng) ghi đè
+                if (!row.TryGetValue(t.Hour, out var cur) || cur is SlotState.Closed or SlotState.Booked) continue;
+                row[t.Hour] = b.Status == BookingStatus.Confirmed ? SlotState.Booked : SlotState.Held;
+            }
+        return grid;
     }
 }

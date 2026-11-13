@@ -1,0 +1,86 @@
+/* Giao diện tối. Bật bằng thuộc tính data-bs-theme="dark" trên <html> (xem js/site.js). Nạp sau site.css và courts.css. Nút bật/tắt và toast (giao diện sáng) nằm ở site.css.
+   Nền #1a1a2e, chữ #eee; màu thương hiệu (nút, vạch sân, banner xanh) giữ nguyên. */
+
+[data-bs-theme="dark"] .theme-toggle .icon-moon { display: none; }
+[data-bs-theme="dark"] .theme-toggle .icon-sun { display: block; }
+
+/* ---------- Biến màu ---------- */
+html[data-bs-theme="dark"] {
+  color-scheme: dark;
+  --ink: #eeeeee; --paper: #1a1a2e; --mist: #35355a; --muted: #a8a8c4;
+  --surface: #232344; --surface-2: #2c2c52; --accent-text: #4cc38a;
+  --bs-body-bg: #1a1a2e; --bs-body-color: #eeeeee; --bs-border-color: #35355a;
+  --bs-link-color: #4cc38a; --bs-link-hover-color: #86e3b3;
+  --bs-card-bg: var(--surface); --bs-dropdown-bg: var(--surface); --bs-dropdown-link-color: #eeeeee;
+  --bs-dropdown-link-hover-bg: var(--surface-2); --bs-dropdown-link-hover-color: #fff; --bs-dropdown-border-color: #35355a;
+}
+[data-bs-theme="dark"] :focus-visible { outline-color: var(--accent-text); }
+
+/* ---------- Bề mặt (nền #fff trong giao diện sáng) ---------- */
+[data-bs-theme="dark"] .theme-toggle:hover { background: var(--surface-2); }
+[data-bs-theme="dark"] .site-nav,
+[data-bs-theme="dark"] .panel-card,
+[data-bs-theme="dark"] .profile-hero,
+[data-bs-theme="dark"] .stat-card,
+[data-bs-theme="dark"] .court-card,
+[data-bs-theme="dark"] .chip,
+[data-bs-theme="dark"] .day-chip,
+[data-bs-theme="dark"] .method-card,
+[data-bs-theme="dark"] .cal-wrap,
+[data-bs-theme="dark"] .cal-grid .cal-court,
+[data-bs-theme="dark"] .book-dialog,
+[data-bs-theme="dark"] .fss-toast { background: var(--surface); color: var(--ink); }
+[data-bs-theme="dark"] .site-nav .nav-link:hover,
+[data-bs-theme="dark"] .method-card:hover { background: var(--surface-2); }
+[data-bs-theme="dark"] .chip.active, [data-bs-theme="dark"] .day-chip.active { background: var(--chip, var(--sport, var(--brand))); color: #fff; }
+[data-bs-theme="dark"] .chip:hover, [data-bs-theme="dark"] .day-chip:hover { color: var(--ink); }
+[data-bs-theme="dark"] .panel-card { box-shadow: none; }
+[data-bs-theme="dark"] .fss-toast { box-shadow: 0 10px 30px rgba(0, 0, 0, .5); }
+[data-bs-theme="dark"] .avatar-edit { border-color: var(--surface); }
+
+/* Chữ đang dùng màu xanh đậm (forest) trên nền sáng */
+[data-bs-theme="dark"] .brand-name,
+[data-bs-theme="dark"] .stat-card .stat-value,
+[data-bs-theme="dark"] .nav-tabs .nav-link.active { color: var(--ink); }
+[data-bs-theme="dark"] .nav-tabs .nav-link.active { background: var(--paper); border-color: var(--mist) var(--mist) var(--paper); }
+[data-bs-theme="dark"] .tag, [data-bs-theme="dark"] code { background: var(--surface-2); color: #c9f27a; }
+[data-bs-theme="dark"] .court-banner .tag { background: rgba(255, 255, 255, .2); color: #fff; }
+[data-bs-theme="dark"] .court-card .price { background: rgba(0, 0, 0, .75); }
+[data-bs-theme="dark"] .btn-outline-success { --bs-btn-color: var(--accent-text); --bs-btn-hover-color: #fff; }
+[data-bs-theme="dark"] .btn-outline-warning { --bs-btn-color: #ffc107; }
+
+/* Form và bảng */
+[data-bs-theme="dark"] .form-control,
+[data-bs-theme="dark"] .form-select { background-color: var(--surface-2); color: var(--ink); border-color: #4a4a74; }
+[data-bs-theme="dark"] .form-control::placeholder { color: #8c8cac; }
+[data-bs-theme="dark"] .form-control:focus,
+[data-bs-theme="dark"] .form-select:focus { background-color: var(--surface-2); color: var(--ink); border-color: var(--brand); }
+[data-bs-theme="dark"] .table { --bs-table-bg: var(--surface); --bs-table-color: var(--ink); --bs-table-border-color: var(--mist); }
+[data-bs-theme="dark"] .table th { color: var(--muted); }
+[data-bs-theme="dark"] .navbar-toggler { border-color: var(--mist); }
+[data-bs-theme="dark"] .navbar-toggler-icon { filter: invert(1); }
+
+/* Mã QR cần nền sáng để máy quét đọc được */
+[data-bs-theme="dark"] img[alt*="QR"] { background: #fff; padding: 8px; border-radius: 10px; }
+[data-bs-theme="dark"] .fake-qr { color: #334155; }
+
+/* Lịch dạng lưới */
+[data-bs-theme="dark"] .cal-grid .cal-court a { color: var(--ink); }
+[data-bs-theme="dark"] .cal-free { background: #1f5c3d; color: #c4f3d8; }
+[data-bs-theme="dark"] button.cal-free:hover, [data-bs-theme="dark"] a.cal-free:hover { background: #2a8656; color: #fff; }
+[data-bs-theme="dark"] .cal-booked { background: #6b2a2a; color: #ffcdc8; }
+[data-bs-theme="dark"] .cal-held { background: #5c4a12; color: #ffe08a; }
+[data-bs-theme="dark"] .cal-off { background: #26264a; color: #6f6f94; }
+[data-bs-theme="dark"] .legend i { background: var(--surface); }
+[data-bs-theme="dark"] .legend i.lg { background: #1f5c3d; border-color: #2a8656; }
+[data-bs-theme="dark"] .legend i.lr { background: #6b2a2a; border-color: #a04545; }
+[data-bs-theme="dark"] .legend i.ly { background: #5c4a12; border-color: #a38624; }
+[data-bs-theme="dark"] .legend i.lo { background: #26264a; border-color: var(--mist); }
+[data-bs-theme="dark"] .book-dialog::backdrop { background: rgba(0, 0, 0, .65); }
+
+/* Đánh giá */
+[data-bs-theme="dark"] .rating-stars .off { color: #45456c; }
+[data-bs-theme="dark"] .star-input label { color: #45456c; }
+[data-bs-theme="dark"] .star-input label:hover,
+[data-bs-theme="dark"] .star-input label:hover ~ label,
+[data-bs-theme="dark"] .star-input input:checked ~ label { color: #f5a623; }

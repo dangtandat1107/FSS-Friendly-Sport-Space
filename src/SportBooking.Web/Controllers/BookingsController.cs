@@ -22,6 +22,7 @@ public class BookingsController : Controller
         var r = await _svc.CreateAsync(UserId, courtId, date.Date.AddHours(hour), hours);
         if (r.Success)
         {
+            TempData["Toast"] = $"✅ Đặt sân thành công! Mã đơn: {r.Booking!.Code}";
             TempData["Msg"] = $"Đã giữ chỗ. Vui lòng thanh toán trong {IBookingService.PaymentTimeoutMinutes} phút.";
             return RedirectToAction("Pay", "Payments", new { bookingId = r.Booking!.Id });
         }
@@ -31,7 +32,7 @@ public class BookingsController : Controller
 
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> My() =>
-        View(await _db.Bookings.AsNoTracking().Include(b => b.Court).Include(b => b.Payments)
+        View(await _db.Bookings.AsNoTracking().Include(b => b.Court).Include(b => b.Payments).Include(b => b.Review)
             .Where(b => b.CustomerId == UserId).OrderByDescending(b => b.StartTime).ToListAsync());
 
     [Authorize(Roles = "Customer"), HttpPost, ValidateAntiForgeryToken]

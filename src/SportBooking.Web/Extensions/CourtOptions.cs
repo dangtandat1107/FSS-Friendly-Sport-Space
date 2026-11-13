@@ -23,6 +23,9 @@ public static class CourtOptions
         _                    => Array.Empty<CourtSurface>()
     };
 
+    // Bóng đá luôn là sân ngoài trời nên không có lựa chọn trong nhà/ngoài trời (cả bộ lọc lẫn form thêm sân)
+    public static bool HasIndoorOption(SportType sport) => sport != SportType.Football;
+
     // Các nhãn ngắn hiển thị trên thẻ sân
     public static List<string> Tags(Court c)
     {

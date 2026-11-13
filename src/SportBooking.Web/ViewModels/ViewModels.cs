@@ -37,7 +37,32 @@ public class CourtDetailsVm
 {
     public Court Court { get; set; } = null!;
     public DateTime Date { get; set; }
-    public HashSet<int> BusyHours { get; set; } = new();
+    public CalendarVm Calendar { get; set; } = new();
+    public List<Review> Reviews { get; set; } = new();   // các đánh giá mới nhất, kèm thông tin người đánh giá
+}
+
+// Dữ liệu cho lịch dạng lưới: hàng là sân, cột là khung giờ
+public class CalendarVm
+{
+    public DateTime Date { get; set; }
+    public SportType? Sport { get; set; }
+    public List<Court> Courts { get; set; } = new();
+    public Dictionary<int, Dictionary<int, SlotState>> Grid { get; set; } = new();
+}
+
+public class ReviewFormVm
+{
+    public int BookingId { get; set; }
+
+    [Range(1, 5, ErrorMessage = "Vui lòng chọn từ 1 đến 5 sao.")]
+    [Display(Name = "Số sao")] public int Rating { get; set; }
+
+    [StringLength(1000, ErrorMessage = "Bình luận tối đa 1000 ký tự.")]
+    [Display(Name = "Bình luận")] public string? Comment { get; set; }
+
+    // Chỉ để hiển thị trên form, không nhận từ người dùng. Để kiểu nullable để MVC không coi là bắt buộc khi gửi form
+    public string? CourtName { get; set; }
+    public string? PlayedAt { get; set; }
 }
 
 public class AdminDashboardVm

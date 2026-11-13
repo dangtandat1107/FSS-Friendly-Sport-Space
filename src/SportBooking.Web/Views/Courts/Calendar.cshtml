@@ -1,0 +1,48 @@
+@model CalendarVm
+@{
+    ViewData["Title"] = "Lịch trống";
+    var sport = Model.Sport;
+    string[] dow = { "CN", "T2", "T3", "T4", "T5", "T6", "T7" };
+}
+<h3 class="mb-3">Lịch trống dạng lưới</h3>
+
+<div class="filter-row">
+  <span class="filter-label">Môn</span>
+  <a class="chip @(sport == null ? "active" : "")" asp-action="Calendar" asp-route-date="@Model.Date.ToString("yyyy-MM-dd")">Tất cả môn</a>
+  @foreach (var s in SportInfo.All)
+  {
+    var m = s.Meta();
+    <a class="chip @(sport == s ? "active" : "")" style="--chip:@m.Color" asp-action="Calendar" asp-route-sport="@s" asp-route-date="@Model.Date.ToString("yyyy-MM-dd")">@m.Label</a>
+  }
+</div>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  @for (var i = 0; i < 7; i++)
+  {
+    var d = DateTime.Today.AddDays(i);
+    <a class="day-chip @(d == Model.Date.Date ? "active" : "")" asp-action="Calendar" asp-route-sport="@sport" asp-route-date="@d.ToString("yyyy-MM-dd")">
+      <b>@(i == 0 ? "Nay" : dow[(int)d.DayOfWeek])</b><small>@d.ToString("dd/MM")</small>
+    </a>
+  }
+  <form method="get" class="ms-md-2">
+    @if (sport != null) { <input type="hidden" name="sport" value="@sport" /> }
+    <input type="date" name="date" class="form-control form-control-sm" value="@Model.Date.ToString("yyyy-MM-dd")" min="@DateTime.Today.ToString("yyyy-MM-dd")" aria-label="Chọn ngày khác" onchange="this.form.submit()" />
+  </form>
+</div>
+
+@if (Model.Courts.Count == 0)
+{
+  <div class="panel-card p-4"><h5>Chưa có sân</h5><p class="text-muted mb-0">Môn này chưa có sân nào để hiển thị.</p></div>
+}
+else
+{
+  <div class="text-muted small mb-2">Ngày @Model.Date.ToString("dd/MM/yyyy"), @Model.Courts.Count sân. Bấm vào ô xanh để đặt.</div>
+  @await Html.PartialAsync("_CalendarGrid", Model)
+}
+
+@if (User.Identity?.IsAuthenticated != true)
+{
+  <div class="panel-card p-3 mt-3">
+    <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@(Context.Request.Path + Context.Request.QueryString)">Đăng nhập</a> bằng tài khoản khách hàng để đặt sân.
+  </div>
+}

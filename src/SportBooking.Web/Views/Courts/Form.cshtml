@@ -8,6 +8,7 @@
     {
         options[((int)s).ToString()] = new
         {
+            hasIndoor = CourtOptions.HasIndoorOption(s),
             formats = CourtOptions.FormatsFor(s).Select(f => new { value = ((int)f).ToString(), label = f.DisplayName() }),
             surfaces = CourtOptions.SurfacesFor(s).Select(f => new { value = ((int)f).ToString(), label = f.DisplayName() })
         };
@@ -27,7 +28,7 @@
         <div class="col-md-6 mb-3" id="format-box"><label class="form-label" asp-for="CourtFormat"></label><select class="form-select" asp-for="CourtFormat" asp-items="Html.GetEnumSelectList<CourtFormat>()"></select></div>
         <div class="col-md-6 mb-3" id="surface-box"><label class="form-label" asp-for="Surface"></label><select class="form-select" asp-for="Surface" asp-items="Html.GetEnumSelectList<CourtSurface>()"></select></div>
       </div>
-      <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" asp-for="IsIndoor" /><label class="form-check-label" asp-for="IsIndoor"></label></div>
+      <div id="indoor-box" class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" asp-for="IsIndoor" /><label class="form-check-label" asp-for="IsIndoor"></label></div>
 
       <div class="mb-3"><label class="form-label" asp-for="District"></label><input class="form-control" asp-for="District" /></div>
       <div class="mb-3"><label class="form-label" asp-for="Address"></label><input class="form-control" asp-for="Address" /></div>
@@ -55,6 +56,7 @@
     var sport = document.getElementById('SportType');
     var fmt = document.getElementById('CourtFormat'), fmtBox = document.getElementById('format-box');
     var sur = document.getElementById('Surface'), surBox = document.getElementById('surface-box');
+    var indoorBox = document.getElementById('indoor-box'), indoor = document.getElementById('IsIndoor');
 
     function fill(select, box, items, emptyLabel) {
       var current = select.value;
@@ -71,9 +73,11 @@
       select.value = items.some(function (it) { return it.value === current; }) ? current : '0';
     }
     function refresh() {
-      var o = OPTIONS[sport.value] || { formats: [], surfaces: [] };
+      var o = OPTIONS[sport.value] || { formats: [], surfaces: [], hasIndoor: true };
       fill(fmt, fmtBox, o.formats, 'Chọn loại sân');
       fill(sur, surBox, o.surfaces, 'Chưa xác định');
+      indoorBox.style.display = o.hasIndoor ? '' : 'none';   // bóng đá: ẩn lựa chọn trong nhà
+      if (!o.hasIndoor) indoor.checked = false;               // ẩn thì về "Ngoài trời"
     }
     sport.addEventListener('change', refresh);
     refresh();

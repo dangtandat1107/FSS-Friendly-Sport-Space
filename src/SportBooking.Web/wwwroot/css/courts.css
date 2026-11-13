@@ -7,3 +7,43 @@
 .sport-tile .tagline { font-size: .8rem; opacity: .92; line-height: 1.25; }
 .img-preview { width: 100%; max-width: 420px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 12px; background: var(--mist); display: block; }
 .thumb-sm { width: 72px; height: 44px; object-fit: cover; border-radius: 8px; background: var(--mist); display: block; }
+
+/* ---------- Lịch dạng lưới: sân x khung giờ ---------- */
+.cal-wrap { overflow-x: auto; border: 1px solid var(--mist); border-radius: 12px; background: #fff; }
+.cal-grid { border-collapse: separate; border-spacing: 0; min-width: 100%; }
+.cal-grid th, .cal-grid td { padding: .25rem; text-align: center; }
+.cal-grid thead th { font-size: .8rem; font-weight: 600; color: var(--muted); padding: .55rem .25rem; }
+.cal-grid .cal-court { position: sticky; left: 0; z-index: 1; background: #fff; min-width: 180px; text-align: left; padding: .5rem .75rem; border-right: 1px solid var(--mist); }
+.cal-grid .cal-court a { font-weight: 600; color: var(--ink); text-decoration: none; }
+.cal-grid .cal-court small { display: block; font-weight: 400; color: var(--muted); }
+.cal-grid tbody tr + tr > * { border-top: 1px solid var(--mist); }
+.cal-cell { display: block; width: 100%; min-width: 64px; padding: .55rem .15rem; border: 0; border-radius: 8px; font-size: .76rem; font-weight: 600; text-align: center; text-decoration: none; line-height: 1.2; }
+.cal-free { background: #bfe8cc; color: #14532d; }
+button.cal-free, a.cal-free { cursor: pointer; }
+button.cal-free:hover, a.cal-free:hover { background: #7fd19b; color: #0b3a1f; }
+button.cal-free:focus-visible { outline: 2px solid #14532d; outline-offset: 1px; }
+.cal-static { cursor: default; }
+.cal-booked { background: #f6b8b1; color: #7a1b12; cursor: not-allowed; }
+.cal-held { background: #ffe08a; color: #6b4a00; cursor: not-allowed; }
+.cal-off { background: #f3f5f4; color: #aab5af; cursor: not-allowed; font-weight: 500; }
+.legend i.lg { background: #bfe8cc; border-color: #7fd19b; }
+.legend i.lr { background: #f6b8b1; border-color: #e88b81; }
+.legend i.ly { background: #ffe08a; border-color: #f0c24a; }
+.legend i.lo { background: #f3f5f4; border-color: var(--mist); }
+
+/* Hộp thoại đặt sân khi bấm vào ô xanh */
+.book-dialog { border: 0; border-radius: 14px; padding: 0; width: min(92vw, 420px); box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.book-dialog::backdrop { background: rgba(0, 0, 0, .45); }
+.book-dialog form { padding: 1.25rem; }
+.book-info { display: grid; grid-template-columns: 88px 1fr; gap: .25rem .5rem; margin-bottom: 1rem; }
+.book-info dt { color: var(--muted); font-weight: 500; }
+.book-info dd { margin: 0; font-weight: 600; }
+
+/* ---------- Đánh giá ---------- */
+.rating-stars { color: #f5a623; font-size: 1.1rem; letter-spacing: .1rem; }
+.rating-stars .off { color: #d9dfdb; }
+.star-input { display: inline-flex; flex-direction: row-reverse; gap: .15rem; }
+.star-input input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.star-input label { font-size: 2.2rem; line-height: 1; color: #cfd8d2; cursor: pointer; }
+.star-input label:hover, .star-input label:hover ~ label, .star-input input:checked ~ label { color: #f5a623; }
+.star-input input:focus-visible + label { outline: 2px solid var(--brand); border-radius: 4px; }
