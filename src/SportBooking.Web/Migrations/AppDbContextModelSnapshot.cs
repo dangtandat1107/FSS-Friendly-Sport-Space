@@ -665,6 +665,9 @@ namespace SportBooking.Web.Migrations
                     b.Property<int>("CurrentStreak")
                         .HasColumnType("int");
 
+                    b.Property<int>("GraceDaysUsedThisMonth")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("LastBookingDate")
                         .HasColumnType("date");
 

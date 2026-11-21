@@ -97,12 +97,19 @@ public static class DbSeeder
     {
         var all = new[]
         {
-            new Badge { Code = "starter", Name = "Người mới bắt đầu", Icon = "🌱", RequiredStreakDays = StreakPolicy.StarterDays, Description = "Giữ chuỗi tập luyện 3 ngày liên tiếp" },
-            new Badge { Code = "warrior", Name = "Chiến binh", Icon = "⚔️", RequiredStreakDays = StreakPolicy.WarriorDays, Description = "Giữ chuỗi tập luyện 7 ngày liên tiếp" },
-            new Badge { Code = "legend", Name = "Huyền thoại", Icon = "👑", RequiredStreakDays = StreakPolicy.LegendDays, Description = "Giữ chuỗi tập luyện 30 ngày liên tiếp" }
+            new Badge { Code = "starter", Name = "Người mới bắt đầu", Icon = "🌱", RequiredStreakDays = StreakPolicy.StarterDays, Description = "Đạt chuỗi 3 ngày tập (được nghỉ xen kẽ tối đa 2 ngày liên tiếp)" },
+            new Badge { Code = "warrior", Name = "Chiến binh", Icon = "⚔️", RequiredStreakDays = StreakPolicy.WarriorDays, Description = "Đạt chuỗi 7 ngày tập, có thể kèm ngày nghỉ" },
+            new Badge { Code = "discipline", Name = "Kỷ luật thép", Icon = "🛡️", RequiredStreakDays = StreakPolicy.DisciplineDays, Description = "Có chuỗi dài nhất từ 14 ngày tập trở lên" },
+            new Badge { Code = "legend", Name = "Huyền thoại", Icon = "👑", RequiredStreakDays = StreakPolicy.LegendDays, Description = "Đạt chuỗi 30 ngày tập, có thể kèm ngày nghỉ" }
         };
-        var existing = await db.Badges.Select(b => b.Code).ToListAsync();
-        foreach (var b in all.Where(b => !existing.Contains(b.Code))) db.Badges.Add(b);
+        // Mã huy hiệu là khóa cố định; tên, biểu tượng, mốc và mô tả luôn lấy theo code (sửa ở đây rồi chạy lại là cập nhật)
+        var existing = await db.Badges.ToListAsync();
+        foreach (var b in all)
+        {
+            var cur = existing.FirstOrDefault(x => x.Code == b.Code);
+            if (cur == null) db.Badges.Add(b);
+            else { cur.Name = b.Name; cur.Icon = b.Icon; cur.RequiredStreakDays = b.RequiredStreakDays; cur.Description = b.Description; }
+        }
         await db.SaveChangesAsync();
     }
 

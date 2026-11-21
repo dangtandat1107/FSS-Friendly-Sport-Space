@@ -1,6 +1,6 @@
 namespace SportBooking.Web.Models;
 
-// Thống kê tập luyện của một khách hàng. Đây là bản lưu sẵn để đọc nhanh; số liệu luôn được tính lại từ bảng Bookings
+// Thống kê tập luyện của một khách hàng. Chuỗi cho phép nghỉ: nghỉ tối đa 2 ngày liên tiếp vẫn giữ chuỗi (xem StreakPolicy). Đây là bản lưu sẵn để đọc nhanh; số liệu luôn được tính lại từ bảng Bookings
 // (xem StreakService) nên không bao giờ lệch so với dữ liệu thật. Chỉ tính các buổi đã xác nhận và đã tới ngày chơi.
 public class UserStats
 {
@@ -12,6 +12,7 @@ public class UserStats
     public int TotalBookings { get; set; }                // tổng số lần đặt sân
     public int MonthlyBookings { get; set; }              // số ngày có đặt sân trong tháng hiện tại
     public int YearlyBookings { get; set; }               // số ngày có đặt sân trong năm hiện tại
+    public int GraceDaysUsedThisMonth { get; set; }       // số ngày nghỉ hợp lý (không làm mất chuỗi) đã dùng trong tháng hiện tại
     public DateTime? LastBookingDate { get; set; }        // ngày chơi gần nhất (chỉ lấy phần ngày)
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 }

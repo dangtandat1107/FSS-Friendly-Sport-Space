@@ -185,7 +185,7 @@ public class StaffFormVm
 
 // ---------- Chuỗi tập luyện ----------
 public record BadgeStatus(Badge Badge, DateTime? EarnedAt) { public bool Earned => EarnedAt != null; }
-public record DayDot(DateTime Day, bool Played);
+public record DayDot(DateTime Day, bool Played, bool Rest);   // Rest: ngày nghỉ hợp lý, không làm mất chuỗi
 
 public class StreakSummary
 {
@@ -194,6 +194,10 @@ public class StreakSummary
     public List<BadgeStatus> Badges { get; set; } = new();       // tất cả huy hiệu, kèm đã đạt hay chưa
     public Badge? NextBadge { get; set; }                         // huy hiệu kế tiếp chưa đạt (null nếu đã đạt hết)
     public int DaysToNext { get; set; }
+    public bool InGrace { get; set; }                             // đang nghỉ nhưng chưa mất chuỗi
+    public int GraceDaysLeft { get; set; }                        // số ngày sau hôm nay mà đặt sân vẫn giữ được chuỗi
+    public string? GraceText { get; set; }                        // thông báo hạn giữ chuỗi (null nếu không đang nghỉ)
+    public string GraceLevel { get; set; } = "info";            // info, warning hoặc danger, dùng làm màu cảnh báo
     public int ProgressPercent { get; set; }
     public List<DayDot> Last14 { get; set; } = new();
     public List<Badge> NewlyEarned { get; set; } = new();        // huy hiệu vừa đạt, dùng để hiện toast

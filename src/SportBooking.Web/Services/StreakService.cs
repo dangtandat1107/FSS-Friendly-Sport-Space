@@ -4,23 +4,38 @@ using SportBooking.Web.Models;
 using SportBooking.Web.ViewModels;
 namespace SportBooking.Web.Services;
 
-// Mốc và lời động viên. Các mốc huy hiệu dùng chung cho DbSeeder để chỉ có một nơi định nghĩa
+// Quy tắc chuỗi tập luyện, mốc huy hiệu và lời động viên. Mọi con số nằm ở đây để chỉnh một chỗ
 public static class StreakPolicy
 {
-    public const int StarterDays = 3;     // 🌱 Người mới bắt đầu
-    public const int WarriorDays = 7;     // ⚔️ Chiến binh
-    public const int LegendDays = 30;     // 👑 Huyền thoại
+    // Hạn giữ chuỗi: khoảng cách giữa 2 ngày đặt sân lớn hơn MaxGapDays thì mất chuỗi.
+    // Khoảng cách 3 ngày (nghỉ 2 ngày) vẫn giữ chuỗi; khoảng cách 4 ngày (nghỉ liền 3 ngày) thì mất.
+    public const int MaxGapDays = 3;
 
+    public const int StarterDays = 3;       // 🌱 Người mới bắt đầu
+    public const int WarriorDays = 7;       // ⚔️ Chiến binh
+    public const int DisciplineDays = 14;   // 🛡️ Kỷ luật thép (tính theo chuỗi dài nhất)
+    public const int LegendDays = 30;       // 👑 Huyền thoại
+
+    // Lời động viên theo số ngày trong chuỗi (số ngày đã đặt sân, không tính ngày nghỉ xen giữa)
     public static string Message(int days) => days switch
     {
         <= 0 => "Hôm nay hãy đặt sân để bắt đầu chuỗi tập luyện mới nhé!",
-        1 => "Bạn đã bắt đầu chuỗi tập luyện. Ngày mai quay lại để giữ lửa nhé!",
-        2 => "Chuỗi 2 ngày liên tiếp, chỉ cần thêm 1 ngày nữa là nhận huy hiệu đầu tiên!",
-        < WarriorDays => $"Bạn giữ chuỗi {days} ngày liên tiếp, thói quen tốt đang hình thành. Tiếp tục nào!",
-        < 14 => $"Bạn giữ chuỗi tập luyện {days} ngày vì sức khỏe rất tốt, cứ thế phát huy nhé!",
-        < LegendDays => $"{days} ngày liên tiếp, ý chí thật đáng nể! Còn {LegendDays - days} ngày nữa là chạm mốc 1 tháng.",
-        _ => $"{days} ngày liên tiếp, bạn đã vượt mốc 1 tháng. Đúng là huyền thoại!"
+        1 => "Bạn đã bắt đầu chuỗi tập luyện. Hãy quay lại trong vài ngày tới để giữ lửa nhé!",
+        2 => "Chuỗi 2 ngày tập, thêm 1 ngày nữa là nhận huy hiệu đầu tiên!",
+        < WarriorDays => $"Bạn giữ chuỗi {days} ngày tập, thói quen tốt đang hình thành. Tiếp tục nào!",
+        < DisciplineDays => $"Bạn giữ chuỗi tập luyện {days} ngày vì sức khỏe rất tốt, cứ thế phát huy nhé!",
+        < LegendDays => $"{days} ngày tập trong chuỗi, kỷ luật thật đáng nể! Còn {LegendDays - days} ngày nữa là chạm mốc 1 tháng.",
+        _ => $"{days} ngày tập trong chuỗi, bạn đã vượt mốc 1 tháng. Đúng là huyền thoại!"
     };
+
+    // Thông báo khi khách đang nghỉ (vẫn còn hạn giữ chuỗi). daysLeft: số ngày sau hôm nay mà đặt sân vẫn giữ được chuỗi
+    public static (string Level, string Text)? GraceNotice(bool inGrace, int daysLeft)
+    {
+        if (!inGrace) return null;
+        if (daysLeft <= 0) return ("danger", "🚨 Hôm nay là ngày cuối để giữ chuỗi. Hãy đặt sân hôm nay!");
+        if (daysLeft == 1) return ("warning", "⚠️ Bạn còn 1 ngày để giữ chuỗi. Hãy đặt sân ngày mai nhé!");
+        return ("info", $"Bạn đang trong ngày nghỉ hợp lý. Bạn còn {daysLeft} ngày để giữ chuỗi.");
+    }
 }
 
 public static class BadgeToast
@@ -30,33 +45,60 @@ public static class BadgeToast
         => badges.Count == 0 ? null : "🎉 Bạn vừa nhận huy hiệu: " + string.Join(", ", badges.Select(b => $"{b.Icon} {b.Name}")) + "!";
 }
 
-public record StreakResult(int Current, int Longest, DateTime? LastDate, int MonthDays, int YearDays);
+public record StreakResult(
+    int Current, int Longest, DateTime? LastDate, int MonthDays, int YearDays,
+    int GraceDaysUsedThisMonth, bool InGrace, int GraceDaysLeft, HashSet<DateTime> RestDays);
 
 // Hàm thuần (không đụng database) nên dễ viết unit test
 public static class StreakCalculator
 {
-    // playDays: ngày của các buổi đã xác nhận. Chỉ tính đến hôm nay; lịch đặt trước cho ngày chưa tới sẽ được tính khi ngày đó tới.
-    public static StreakResult Compute(IEnumerable<DateTime> playDays, DateTime today)
+    /// <param name="playDays">Ngày của các buổi đã xác nhận. Chỉ tính đến hôm nay; lịch đặt trước cho ngày chưa tới sẽ được tính khi ngày đó tới.</param>
+    /// <param name="excusedDays">Ngày khách báo sự cố y tế. Ngày này không phải ngày tập (không tăng chuỗi) nhưng được coi là "đang hồi phục",
+    /// nên làm mới hạn giữ chuỗi thay vì bị tính là bỏ tập.</param>
+    public static StreakResult Compute(IEnumerable<DateTime> playDays, IEnumerable<DateTime> excusedDays, DateTime today)
     {
-        var days = playDays.Select(d => d.Date).Where(d => d <= today.Date).Distinct().OrderBy(d => d).ToList();
-        if (days.Count == 0) return new StreakResult(0, 0, null, 0, 0);
+        var t = today.Date;
+        var play = playDays.Select(d => d.Date).Where(d => d <= t).ToHashSet();   // HashSet: nhiều lượt cùng ngày chỉ tính 1 ngày
+        if (play.Count == 0) return new StreakResult(0, 0, null, 0, 0, 0, false, 0, new HashSet<DateTime>());
+        var excused = excusedDays.Select(d => d.Date).Where(d => d <= t).ToHashSet();
 
-        // Duyệt các ngày theo thứ tự: ngày liền sau ngày trước thì chuỗi dài thêm 1, nếu không thì bắt đầu lại từ 1
-        int run = 1, longest = 1;
-        for (var i = 1; i < days.Count; i++)
+        // Duyệt các ngày có hoạt động theo thứ tự. Khoảng cách tới ngày trước lớn hơn MaxGapDays thì chuỗi bắt đầu lại,
+        // ngược lại chuỗi được giữ và các ngày nghỉ ở giữa được bỏ qua (không tăng, không giảm).
+        var events = play.Union(excused).OrderBy(d => d).ToList();
+        int run = 0, longest = 0;
+        DateTime? prev = null;
+        var forgiven = new List<DateTime>();   // các ngày nghỉ đã được bỏ qua nhờ còn hạn giữ chuỗi
+        foreach (var d in events)
         {
-            run = (days[i] - days[i - 1]).Days == 1 ? run + 1 : 1;
+            if (prev == null || (d - prev.Value).Days > StreakPolicy.MaxGapDays) run = 0;
+            else for (var x = prev.Value.AddDays(1); x < d; x = x.AddDays(1)) forgiven.Add(x);
+
+            if (play.Contains(d)) run++;       // chỉ ngày đặt sân mới làm chuỗi dài thêm
             longest = Math.Max(longest, run);
+            prev = d;
         }
 
-        // Sau vòng lặp, run chính là độ dài chuỗi kết thúc ở ngày chơi gần nhất.
-        // Chuỗi còn "sống" nếu ngày đó là hôm nay hoặc hôm qua (hôm nay vẫn còn thời gian để đặt tiếp); xa hơn thì đã đứt.
-        var last = days[^1];
-        var current = last >= today.Date.AddDays(-1) ? run : 0;
+        // Chuỗi còn sống nếu từ hoạt động gần nhất đến nay chưa quá MaxGapDays ngày
+        var end = events[^1];
+        var sinceEnd = (t - end).Days;
+        var alive = sinceEnd <= StreakPolicy.MaxGapDays;
+        var current = alive ? run : 0;
 
-        return new StreakResult(current, longest, last,
-            days.Count(d => d.Year == today.Year && d.Month == today.Month),
-            days.Count(d => d.Year == today.Year));
+        // Đang nghỉ nhưng còn hạn giữ chuỗi: hôm nay chưa đặt sân. Số ngày còn lại để giữ chuỗi tính từ ngày mai
+        var inGrace = alive && current > 0 && sinceEnd >= 1;
+        var graceLeft = inGrace ? StreakPolicy.MaxGapDays - sinceEnd : 0;
+
+        // Ngày nghỉ hợp lý đã dùng: các ngày nghỉ đã bỏ qua, cộng các ngày đã nghỉ xong từ lần cuối tới hôm qua (hôm nay chưa tính)
+        var rest = new List<DateTime>(forgiven);
+        if (alive) for (var x = end.AddDays(1); x < t; x = x.AddDays(1)) rest.Add(x);
+        var shown = new HashSet<DateTime>(rest);
+        shown.UnionWith(excused);
+
+        return new StreakResult(current, longest, play.Max(),
+            play.Count(d => d.Year == t.Year && d.Month == t.Month),
+            play.Count(d => d.Year == t.Year),
+            rest.Count(d => d.Year == t.Year && d.Month == t.Month),
+            inGrace, graceLeft, shown);
     }
 }
 
@@ -68,7 +110,7 @@ public interface IStreakService
     /// <summary>Thống kê đã được làm mới. Các tính năng khác (ví dụ ưu đãi nước uống theo chuỗi) đọc CurrentStreak qua hàm này, không đọc thẳng bảng UserStats.</summary>
     Task<UserStats> GetStatsAsync(string userId);
 
-    /// <summary>Dữ liệu cho trang hồ sơ: thống kê, lời động viên, tiến độ huy hiệu, 14 ngày gần nhất. Đánh dấu các huy hiệu mới là đã báo.</summary>
+    /// <summary>Trạng thái chuỗi cho trang hồ sơ: chuỗi hiện tại, số ngày còn lại để giữ chuỗi, huy hiệu đã đạt, tiến độ, 14 ngày gần nhất. Đánh dấu huy hiệu mới là đã báo.</summary>
     Task<StreakSummary> GetSummaryAsync(string userId);
 }
 
@@ -82,7 +124,7 @@ public class StreakService : IStreakService
     {
         try
         {
-            // Lịch cho ngày chưa tới chưa tính vào chuỗi (tránh đặt trước 7 ngày liền để lấy huy hiệu).
+            // Lịch cho ngày chưa tới chưa tính vào chuỗi (tránh đặt trước nhiều ngày để lấy huy hiệu).
             // Khi ngày đó tới, GetStatsAsync sẽ tính vào.
             if (bookingDate.Date > DateTime.Today) return null;
             return (await RefreshAsync(userId)).Stats;
@@ -98,7 +140,7 @@ public class StreakService : IStreakService
 
     public async Task<StreakSummary> GetSummaryAsync(string userId)
     {
-        var (stats, played) = await RefreshAsync(userId);
+        var (stats, r, played) = await RefreshAsync(userId);
 
         var badges = await _db.Badges.AsNoTracking().OrderBy(b => b.RequiredStreakDays).ToListAsync();
         var owned = await _db.UserBadges.Where(u => u.UserId == userId).ToListAsync();
@@ -108,22 +150,28 @@ public class StreakService : IStreakService
         {
             Stats = stats,
             Message = StreakPolicy.Message(stats.CurrentStreak),
+            InGrace = r.InGrace,
+            GraceDaysLeft = r.GraceDaysLeft,
             Badges = badges.Select(b => new BadgeStatus(b, ownedById.TryGetValue(b.Id, out var ub) ? ub.EarnedAt : null)).ToList()
         };
 
-        // Huy hiệu kế tiếp chưa đạt và tiến độ của chuỗi hiện tại đối với mốc đó
+        var notice = StreakPolicy.GraceNotice(r.InGrace, r.GraceDaysLeft);
+        if (notice != null) { summary.GraceLevel = notice.Value.Level; summary.GraceText = notice.Value.Text; }
+
+        // Huy hiệu kế tiếp chưa đạt và tiến độ đối với mốc đó. Huy hiệu theo chuỗi dài nhất (Kỷ luật thép) thì tính theo LongestStreak
         var next = badges.FirstOrDefault(b => !ownedById.ContainsKey(b.Id));
         if (next != null)
         {
+            var basis = next.Code == "discipline" ? stats.LongestStreak : stats.CurrentStreak;
             summary.NextBadge = next;
-            summary.DaysToNext = Math.Max(0, next.RequiredStreakDays - stats.CurrentStreak);
-            summary.ProgressPercent = Math.Min(100, stats.CurrentStreak * 100 / Math.Max(1, next.RequiredStreakDays));
+            summary.DaysToNext = Math.Max(0, next.RequiredStreakDays - basis);
+            summary.ProgressPercent = Math.Min(100, basis * 100 / Math.Max(1, next.RequiredStreakDays));
         }
 
-        // 14 ngày gần nhất, ngày nào có buổi tập thì tô màu
+        // 14 ngày gần nhất: ngày có buổi tập, ngày nghỉ hợp lý (không mất chuỗi), ngày không có gì
         var today = DateTime.Today;
         summary.Last14 = Enumerable.Range(0, 14).Select(i => today.AddDays(i - 13))
-            .Select(d => new DayDot(d, played.Contains(d))).ToList();
+            .Select(d => new DayDot(d, played.Contains(d), r.RestDays.Contains(d))).ToList();
 
         // Huy hiệu mới đạt mà khách chưa được báo
         var fresh = owned.Where(u => !u.IsSeen).ToList();
@@ -138,13 +186,20 @@ public class StreakService : IStreakService
 
     // Tính lại toàn bộ từ bảng Bookings (nguồn dữ liệu thật) rồi lưu vào UserStats và trao huy hiệu.
     // Nhờ vậy đúng cả khi các lịch được xác nhận không theo thứ tự ngày, hoặc có lịch bị hủy.
-    private async Task<(UserStats Stats, HashSet<DateTime> PlayedDays)> RefreshAsync(string userId)
+    // Lịch đã hủy không được tính, tức là ngày đó thành ngày nghỉ (còn hạn giữ chuỗi thì chuỗi vẫn giữ), không bị phạt thêm.
+    private async Task<(UserStats Stats, StreakResult Result, HashSet<DateTime> Played)> RefreshAsync(string userId)
     {
         var today = DateTime.Today;
         var starts = await _db.Bookings.AsNoTracking()
             .Where(b => b.CustomerId == userId && b.Status == BookingStatus.Confirmed && b.StartTime < today.AddDays(1))
             .Select(b => b.StartTime).ToListAsync();
-        var r = StreakCalculator.Compute(starts, today);
+
+        // Báo sự cố y tế (trừ báo cáo bị từ chối) không bị tính là bỏ tập: ngày đó làm mới hạn giữ chuỗi
+        var excused = await _db.Incidents.AsNoTracking()
+            .Where(i => i.ReporterId == userId && i.Category == IncidentCategory.Medical && i.Status != IncidentStatus.Rejected)
+            .Select(i => i.CreatedAt).ToListAsync();
+
+        var r = StreakCalculator.Compute(starts, excused, today);
 
         var stats = await _db.UserStats.FirstOrDefaultAsync(s => s.UserId == userId);
         if (stats == null) { stats = new UserStats { UserId = userId }; _db.UserStats.Add(stats); }
@@ -154,6 +209,7 @@ public class StreakService : IStreakService
         stats.TotalBookings = starts.Count;
         stats.MonthlyBookings = r.MonthDays;
         stats.YearlyBookings = r.YearDays;
+        stats.GraceDaysUsedThisMonth = r.GraceDaysUsedThisMonth;
         stats.UpdatedAt = DateTime.Now;
 
         // Trao huy hiệu khi chuỗi dài nhất chạm mốc. Đã trao thì không thu hồi
@@ -170,6 +226,6 @@ public class StreakService : IStreakService
                 e.State = EntityState.Detached;
             stats = await _db.UserStats.AsNoTracking().FirstAsync(s => s.UserId == userId);
         }
-        return (stats, starts.Select(s => s.Date).ToHashSet());
+        return (stats, r, starts.Select(s => s.Date).ToHashSet());
     }
 }

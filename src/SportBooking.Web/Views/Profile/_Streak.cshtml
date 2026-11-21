@@ -5,6 +5,7 @@
     {
         ("Chuỗi hiện tại", s.CurrentStreak + " ngày"),
         ("Chuỗi dài nhất", s.LongestStreak + " ngày"),
+        ("Ngày nghỉ hợp lý đã dùng (tháng này)", s.GraceDaysUsedThisMonth + " ngày"),
         ("Ngày tập tháng này", s.MonthlyBookings + " ngày"),
         ("Ngày tập năm nay", s.YearlyBookings + " ngày"),
         ("Tổng số lần đặt sân", s.TotalBookings + " lần")
@@ -13,12 +14,22 @@
 <div class="panel-card streak-card p-4 mb-4">
   <!-- Ngọn lửa và lời động viên: nội dung đổi theo số ngày (xem StreakPolicy.Message) -->
   <div class="d-flex align-items-center gap-3">
-    <div class="streak-flame @(s.CurrentStreak > 0 ? "on" : "off")" aria-hidden="true">🔥</div>
+    <div class="streak-flame @(s.CurrentStreak > 0 ? (Model.InGrace && Model.GraceDaysLeft <= 1 ? "warn" : "on") : "off")" aria-hidden="true">🔥</div>
     <div class="flex-grow-1">
-      <div class="streak-count"><b>@s.CurrentStreak</b> ngày liên tiếp</div>
+      <div class="streak-count"><b>@s.CurrentStreak</b> ngày trong chuỗi</div>
       <div class="text-muted">@Model.Message</div>
     </div>
   </div>
+
+  <!-- Nghỉ tối đa 2 ngày liên tiếp vẫn giữ chuỗi. Đang nghỉ thì báo còn bao nhiêu ngày để giữ chuỗi -->
+  @if (Model.GraceText != null)
+  {
+    <div class="alert alert-@Model.GraceLevel mt-3 mb-0 py-2" role="alert">@Model.GraceText</div>
+  }
+  else
+  {
+    <div class="small text-muted mt-2">Bạn có thể nghỉ tối đa @(StreakPolicy.MaxGapDays - 1) ngày liên tiếp mà không mất chuỗi.</div>
+  }
 
   <!-- Tiến độ tới huy hiệu kế tiếp -->
   @if (Model.NextBadge != null)
@@ -40,11 +51,14 @@
 
   <!-- 14 ngày gần nhất: ô màu là ngày có buổi tập -->
   <div class="mt-3">
-    <div class="small text-muted mb-1">14 ngày gần nhất</div>
+    <div class="small text-muted mb-1">14 ngày gần nhất
+      <span class="ms-2"><span class="streak-dot played d-inline-block align-middle"></span> có buổi tập</span>
+      <span class="ms-2"><span class="streak-dot rest d-inline-block align-middle"></span> nghỉ hợp lý</span>
+    </div>
     <div class="streak-dots">
       @foreach (var d in Model.Last14)
       {
-        <span class="streak-dot @(d.Played ? "played" : "") @(d.Day == DateTime.Today ? "today" : "")" title="@d.Day.ToString("dd/MM")@(d.Played ? ", có buổi tập" : "")"></span>
+        <span class="streak-dot @(d.Played ? "played" : d.Rest ? "rest" : "") @(d.Day == DateTime.Today ? "today" : "")" title="@d.Day.ToString("dd/MM")@(d.Played ? ", có buổi tập" : d.Rest ? ", nghỉ hợp lý (không mất chuỗi)" : "")"></span>
       }
     </div>
   </div>
@@ -53,7 +67,7 @@
   <div class="row g-2 mt-2">
     @foreach (var (label, value) in items)
     {
-      <div class="col-6 col-md"><div class="stat-card p-2 h-100 text-center">
+      <div class="col-6 col-md-4"><div class="stat-card p-2 h-100 text-center">
         <div class="text-muted small">@label</div><div class="fw-bold">@value</div>
       </div></div>
     }
