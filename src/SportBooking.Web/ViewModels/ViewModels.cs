@@ -129,6 +129,7 @@ public class ProfilePageVm
     public List<Booking> Upcoming { get; set; } = new();
     public List<Court> MyCourts { get; set; } = new();
     public string? AvatarUrl { get; set; }
+    public StreakSummary? Streak { get; set; }   // chỉ có với khách hàng
 
     public string RoleLabel => Role switch { "Admin" => "Quản trị viên", "Owner" => "Chủ sân", _ => "Khách hàng" };
     public string Initial => string.IsNullOrWhiteSpace(FullName) ? "?"
@@ -180,5 +181,21 @@ public class StaffFormVm
     [Display(Name = "Mật khẩu tạm")] public string Password { get; set; } = "";
 
     public List<int> CourtIds { get; set; } = new();        // các sân được giao phụ trách
+}
+
+// ---------- Chuỗi tập luyện ----------
+public record BadgeStatus(Badge Badge, DateTime? EarnedAt) { public bool Earned => EarnedAt != null; }
+public record DayDot(DateTime Day, bool Played);
+
+public class StreakSummary
+{
+    public UserStats Stats { get; set; } = new();
+    public string Message { get; set; } = "";
+    public List<BadgeStatus> Badges { get; set; } = new();       // tất cả huy hiệu, kèm đã đạt hay chưa
+    public Badge? NextBadge { get; set; }                         // huy hiệu kế tiếp chưa đạt (null nếu đã đạt hết)
+    public int DaysToNext { get; set; }
+    public int ProgressPercent { get; set; }
+    public List<DayDot> Last14 { get; set; } = new();
+    public List<Badge> NewlyEarned { get; set; } = new();        // huy hiệu vừa đạt, dùng để hiện toast
 }
 

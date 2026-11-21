@@ -27,7 +27,8 @@ public class PaymentService : IPaymentService
 
     private readonly AppDbContext _db;
     private readonly ILogger<PaymentService> _log;
-    public PaymentService(AppDbContext db, ILogger<PaymentService> log) { _db = db; _log = log; }
+    private readonly IStreakService _streaks;
+    public PaymentService(AppDbContext db, ILogger<PaymentService> log, IStreakService streaks) { _db = db; _log = log; _streaks = streaks; }
 
     public async Task<PaymentResult> StartAsync(string customerId, int bookingId, PaymentMethod method)
     {
@@ -121,6 +122,9 @@ public class PaymentService : IPaymentService
         payment.PaidAt = DateTime.Now;
         booking.Status = BookingStatus.Confirmed;
         await _db.SaveChangesAsync();
+
+        // Lịch vừa được xác nhận: cập nhật chuỗi tập luyện của khách (lỗi ở đây chỉ ghi log, không làm hỏng việc xác nhận)
+        await _streaks.UpdateStreakAsync(booking.CustomerId, booking.StartTime);
 
         _log.LogInformation("Payment {Code} confirmed by staff {Staff}", payment.TransactionCode, staffId);
         return new(true, null, payment);

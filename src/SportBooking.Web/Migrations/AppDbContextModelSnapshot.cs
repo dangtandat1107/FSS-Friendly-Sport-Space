@@ -227,6 +227,45 @@ namespace SportBooking.Web.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("SportBooking.Web.Models.Badge", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("nvarchar(60)");
+
+                    b.Property<int>("RequiredStreakDays")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("Badges");
+                });
+
             modelBuilder.Entity("SportBooking.Web.Models.Booking", b =>
                 {
                     b.Property<int>("Id")
@@ -587,6 +626,68 @@ namespace SportBooking.Web.Migrations
                     b.ToTable("Staffs");
                 });
 
+            modelBuilder.Entity("SportBooking.Web.Models.UserBadge", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BadgeId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EarnedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsSeen")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BadgeId");
+
+                    b.HasIndex("UserId", "BadgeId")
+                        .IsUnique();
+
+                    b.ToTable("UserBadges");
+                });
+
+            modelBuilder.Entity("SportBooking.Web.Models.UserStats", b =>
+                {
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("CurrentStreak")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("LastBookingDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("LongestStreak")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonthlyBookings")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TotalBookings")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("YearlyBookings")
+                        .HasColumnType("int");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("UserStats");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -773,6 +874,36 @@ namespace SportBooking.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Court");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SportBooking.Web.Models.UserBadge", b =>
+                {
+                    b.HasOne("SportBooking.Web.Models.Badge", "Badge")
+                        .WithMany()
+                        .HasForeignKey("BadgeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SportBooking.Web.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Badge");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SportBooking.Web.Models.UserStats", b =>
+                {
+                    b.HasOne("SportBooking.Web.Models.ApplicationUser", "User")
+                        .WithOne()
+                        .HasForeignKey("SportBooking.Web.Models.UserStats", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });

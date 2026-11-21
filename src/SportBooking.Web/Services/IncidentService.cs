@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.EntityFrameworkCore;
 using SportBooking.Web.Data;
+using SportBooking.Web.Extensions;
 using SportBooking.Web.Models;
 namespace SportBooking.Web.Services;
 

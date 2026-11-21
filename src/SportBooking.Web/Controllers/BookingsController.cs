@@ -12,7 +12,8 @@ public class BookingsController : Controller
 {
     private readonly AppDbContext _db;
     private readonly IBookingService _svc;
-    public BookingsController(AppDbContext db, IBookingService svc) { _db = db; _svc = svc; }
+    private readonly IStreakService _streaks;
+    public BookingsController(AppDbContext db, IBookingService svc, IStreakService streaks) { _db = db; _svc = svc; _streaks = streaks; }
 
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -31,9 +32,18 @@ public class BookingsController : Controller
     }
 
     [Authorize(Roles = "Customer")]
-    public async Task<IActionResult> My() =>
-        View(await _db.Bookings.AsNoTracking().Include(b => b.Court).Include(b => b.Payments).Include(b => b.Review)
-            .Where(b => b.CustomerId == UserId).OrderByDescending(b => b.StartTime).ToListAsync());
+    public async Task<IActionResult> My()
+    {
+        var list = await _db.Bookings.AsNoTracking().Include(b => b.Court).Include(b => b.Payments).Include(b => b.Review)
+            .Where(b => b.CustomerId == UserId).OrderByDescending(b => b.StartTime).ToListAsync();
+
+        // Chuỗi tập luyện hiện ở đầu trang; huy hiệu mới đạt thì báo bằng toast
+        var streak = await _streaks.GetSummaryAsync(UserId);
+        ViewData["Streak"] = streak;
+        var toast = BadgeToast.For(streak.NewlyEarned);
+        if (toast != null) TempData["Toast"] = toast;
+        return View(list);
+    }
 
     [Authorize(Roles = "Customer"), HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Cancel(int id)
@@ -55,6 +65,7 @@ public class BookingsController : Controller
         var hadAwaiting = b.Payments.Any(p => p.Status == PaymentStatus.AwaitingConfirmation);
         ApplyCancel(b);
         await _db.SaveChangesAsync();
+        await _streaks.UpdateStreakAsync(b.CustomerId, b.StartTime);   // lịch hủy không còn được tính vào chuỗi
 
         TempData["Msg"] = hadPaid ? "Đã hủy lịch. Khoản thanh toán được ghi nhận hoàn tiền."
             : hadAwaiting ? "Đã hủy lịch. Nếu bạn đã chuyển tiền, hãy liên hệ chủ sân để được hoàn lại."
@@ -90,6 +101,8 @@ public class BookingsController : Controller
             }
         }
         await _db.SaveChangesAsync();
+        if (status is BookingStatus.Confirmed or BookingStatus.Cancelled)
+            await _streaks.UpdateStreakAsync(b.CustomerId, b.StartTime);   // xác nhận thì tính vào chuỗi, hủy thì loại ra
         return RedirectToAction(nameof(Manage));
     }
 

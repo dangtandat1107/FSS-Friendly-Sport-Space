@@ -35,6 +35,7 @@ html[data-bs-theme="dark"] {
 [data-bs-theme="dark"] .chip.active, [data-bs-theme="dark"] .day-chip.active { background: var(--chip, var(--sport, var(--brand))); color: #fff; }
 [data-bs-theme="dark"] .chip:hover, [data-bs-theme="dark"] .day-chip:hover { color: var(--ink); }
 [data-bs-theme="dark"] .panel-card { box-shadow: none; }
+[data-bs-theme="dark"] .streak-count b { color: #ff922b; }
 [data-bs-theme="dark"] .fss-toast { box-shadow: 0 10px 30px rgba(0, 0, 0, .5); }
 [data-bs-theme="dark"] .avatar-edit { border-color: var(--surface); }
 

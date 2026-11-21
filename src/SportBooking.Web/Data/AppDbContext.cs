@@ -14,6 +14,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Staff> Staffs => Set<Staff>();
     public DbSet<Incident> Incidents => Set<Incident>();
     public DbSet<IncidentLog> IncidentLogs => Set<IncidentLog>();
+    public DbSet<UserStats> UserStats => Set<UserStats>();
+    public DbSet<Badge> Badges => Set<Badge>();
+    public DbSet<UserBadge> UserBadges => Set<UserBadge>();
 
     protected override void OnModelCreating(ModelBuilder b)
     {
@@ -78,6 +81,29 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             e.HasIndex(x => new { x.Status, x.SlaDeadline });           // tiến trình nền quét các báo cáo quá hạn
             e.HasIndex(x => x.ReporterId);
             e.HasIndex(x => x.DuplicateOfId);
+        });
+
+        b.Entity<UserStats>(e =>
+        {
+            e.HasKey(x => x.UserId);
+            e.Property(x => x.LastBookingDate).HasColumnType("date");
+            e.HasOne(x => x.User).WithOne().HasForeignKey<UserStats>(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        b.Entity<Badge>(e =>
+        {
+            e.Property(x => x.Code).HasMaxLength(30).IsRequired();
+            e.Property(x => x.Name).HasMaxLength(60).IsRequired();
+            e.Property(x => x.Icon).HasMaxLength(16).IsRequired();
+            e.Property(x => x.Description).HasMaxLength(200).IsRequired();
+            e.HasIndex(x => x.Code).IsUnique();
+        });
+
+        b.Entity<UserBadge>(e =>
+        {
+            e.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Badge).WithMany().HasForeignKey(x => x.BadgeId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.UserId, x.BadgeId }).IsUnique();   // mỗi huy hiệu chỉ trao một lần cho mỗi khách
         });
 
         b.Entity<IncidentLog>(e =>

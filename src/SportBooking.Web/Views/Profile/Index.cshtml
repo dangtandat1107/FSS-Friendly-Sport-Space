@@ -56,6 +56,8 @@
 
   <!-- Cột phải: số liệu và các thẻ -->
   <div class="col-lg-8">
+    @if (Model.Streak != null) { <partial name="_Streak" model="Model.Streak" /> }
+
     @if (Model.Stats.Any())
     {
       <div class="row g-3 mb-4">

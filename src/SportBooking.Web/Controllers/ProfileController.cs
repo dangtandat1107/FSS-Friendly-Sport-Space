@@ -16,9 +16,10 @@ public class ProfileController : Controller
     private readonly SignInManager<ApplicationUser> _sm;
     private readonly AppDbContext _db;
     private readonly IAvatarService _avatars;
+    private readonly IStreakService _streaks;
 
-    public ProfileController(UserManager<ApplicationUser> um, SignInManager<ApplicationUser> sm, AppDbContext db, IAvatarService avatars)
-    { _um = um; _sm = sm; _db = db; _avatars = avatars; }
+    public ProfileController(UserManager<ApplicationUser> um, SignInManager<ApplicationUser> sm, AppDbContext db, IAvatarService avatars, IStreakService streaks)
+    { _um = um; _sm = sm; _db = db; _avatars = avatars; _streaks = streaks; }
 
     public async Task<IActionResult> Index(string? tab)
     {
@@ -128,7 +129,7 @@ public class ProfileController : Controller
             var spent = await mine.Where(b => b.Status == BookingStatus.Confirmed).SumAsync(b => (decimal?)b.TotalPrice) ?? 0;
             var total = await mine.CountAsync();
 
-            vm.Stats.Add(new("Tổng lượt đặt", total.ToString()));
+            // Tổng số lần đặt sân hiện trong thẻ "Chuỗi tập luyện" (Streak) nên không lặp lại ở đây
             vm.Stats.Add(new("Sắp diễn ra", (await mine.CountAsync(b => b.EndTime > now)).ToString()));
             vm.Stats.Add(new("Đã chi (đã xác nhận)", spent.ToString("N0") + " đ"));
 
@@ -139,6 +140,11 @@ public class ProfileController : Controller
                     .OrderByDescending(x => x.Count).FirstOrDefaultAsync();
                 if (fav != null) vm.Stats.Add(new("Môn chơi nhiều nhất", fav.Sport.DisplayName()));
             }
+
+            // Chuỗi tập luyện, thống kê và huy hiệu. Huy hiệu mới đạt thì báo bằng toast
+            vm.Streak = await _streaks.GetSummaryAsync(user.Id);
+            var toast = BadgeToast.For(vm.Streak.NewlyEarned);
+            if (toast != null) TempData["Toast"] = toast;
 
             vm.Upcoming = await _db.Bookings.AsNoTracking().Include(b => b.Court)
                 .Where(b => b.CustomerId == user.Id && b.StartTime >= now &&

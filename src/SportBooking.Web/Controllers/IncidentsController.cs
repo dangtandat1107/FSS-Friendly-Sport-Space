@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportBooking.Web.Data;
+using SportBooking.Web.Extensions;
 using SportBooking.Web.Models;
 using SportBooking.Web.Services;
 using SportBooking.Web.ViewModels;

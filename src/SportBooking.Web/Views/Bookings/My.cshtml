@@ -1,7 +1,12 @@
 @model List<Booking>
 @{ ViewData["Title"] = "Lịch của tôi"; }
 <div class="d-flex justify-content-between align-items-center mb-2">
-  <h3 class="mb-0">Lịch đặt của tôi</h3>
+  <h3 class="mb-0">Lịch đặt của tôi
+    @if (ViewData["Streak"] is StreakSummary streak && streak.Stats.CurrentStreak > 0)
+    {
+      <a class="badge bg-warning text-dark text-decoration-none ms-2 align-middle fs-6" asp-controller="Profile" asp-action="Index" title="Xem chuỗi tập luyện và huy hiệu">🔥 @streak.Stats.CurrentStreak ngày liên tiếp</a>
+    }
+  </h3>
   <a class="btn btn-sm btn-outline-secondary" asp-controller="Incidents" asp-action="My">Báo cáo sự cố của tôi</a>
 </div>
 <table class="table align-middle">

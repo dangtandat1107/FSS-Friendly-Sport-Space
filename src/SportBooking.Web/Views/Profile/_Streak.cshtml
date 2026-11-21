@@ -1,0 +1,79 @@
+@model StreakSummary
+@{
+    var s = Model.Stats;
+    var items = new[]
+    {
+        ("Chuỗi hiện tại", s.CurrentStreak + " ngày"),
+        ("Chuỗi dài nhất", s.LongestStreak + " ngày"),
+        ("Ngày tập tháng này", s.MonthlyBookings + " ngày"),
+        ("Ngày tập năm nay", s.YearlyBookings + " ngày"),
+        ("Tổng số lần đặt sân", s.TotalBookings + " lần")
+    };
+}
+<div class="panel-card streak-card p-4 mb-4">
+  <!-- Ngọn lửa và lời động viên: nội dung đổi theo số ngày (xem StreakPolicy.Message) -->
+  <div class="d-flex align-items-center gap-3">
+    <div class="streak-flame @(s.CurrentStreak > 0 ? "on" : "off")" aria-hidden="true">🔥</div>
+    <div class="flex-grow-1">
+      <div class="streak-count"><b>@s.CurrentStreak</b> ngày liên tiếp</div>
+      <div class="text-muted">@Model.Message</div>
+    </div>
+  </div>
+
+  <!-- Tiến độ tới huy hiệu kế tiếp -->
+  @if (Model.NextBadge != null)
+  {
+    <div class="mt-3">
+      <div class="d-flex justify-content-between small mb-1">
+        <span>Huy hiệu kế tiếp: @Model.NextBadge.Icon <b>@Model.NextBadge.Name</b> (@Model.NextBadge.RequiredStreakDays ngày)</span>
+        <span class="text-muted">@(Model.DaysToNext > 0 ? "Còn " + Model.DaysToNext + " ngày" : "")</span>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Tiến độ tới huy hiệu kế tiếp" aria-valuenow="@Model.ProgressPercent" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar bg-success" style="width:@(Model.ProgressPercent)%"></div>
+      </div>
+    </div>
+  }
+  else
+  {
+    <div class="mt-3 small text-success">Bạn đã đạt tất cả huy hiệu. Tuyệt vời!</div>
+  }
+
+  <!-- 14 ngày gần nhất: ô màu là ngày có buổi tập -->
+  <div class="mt-3">
+    <div class="small text-muted mb-1">14 ngày gần nhất</div>
+    <div class="streak-dots">
+      @foreach (var d in Model.Last14)
+      {
+        <span class="streak-dot @(d.Played ? "played" : "") @(d.Day == DateTime.Today ? "today" : "")" title="@d.Day.ToString("dd/MM")@(d.Played ? ", có buổi tập" : "")"></span>
+      }
+    </div>
+  </div>
+
+  <!-- Thống kê cá nhân -->
+  <div class="row g-2 mt-2">
+    @foreach (var (label, value) in items)
+    {
+      <div class="col-6 col-md"><div class="stat-card p-2 h-100 text-center">
+        <div class="text-muted small">@label</div><div class="fw-bold">@value</div>
+      </div></div>
+    }
+  </div>
+
+  <!-- Huy hiệu: đã đạt thì sáng, chưa đạt thì mờ -->
+  <div class="row g-2 mt-2">
+    @foreach (var b in Model.Badges)
+    {
+      <div class="col-sm-4">
+        <div class="badge-tile @(b.Earned ? "" : "locked") text-center p-3 h-100">
+          <div class="badge-icon">@b.Badge.Icon</div>
+          <div class="fw-semibold">@b.Badge.Name</div>
+          <div class="small text-muted">@b.Badge.Description</div>
+          <div class="small mt-1">
+            @if (b.Earned) { <span class="text-success">Đạt ngày @b.EarnedAt?.ToString("dd/MM/yyyy")</span> }
+            else { <span class="text-muted">Chưa đạt</span> }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

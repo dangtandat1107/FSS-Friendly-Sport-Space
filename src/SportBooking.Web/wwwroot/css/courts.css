@@ -53,3 +53,19 @@ button.cal-free:focus-visible { outline: 2px solid #14532d; outline-offset: 1px;
 .incident-card-fb { border: 2px solid var(--brand); }
 .incident-card-off { opacity: .65; }
 .sla { font-variant-numeric: tabular-nums; }
+
+/* ---------- Chuỗi tập luyện (Streak) ---------- */
+.streak-flame { font-size: 3rem; line-height: 1; transform-origin: 50% 90%; }
+.streak-flame.on { animation: flame-flicker 1.6s ease-in-out infinite; filter: drop-shadow(0 0 8px rgba(255, 140, 0, .55)); }
+.streak-flame.off { filter: grayscale(1); opacity: .4; }
+@keyframes flame-flicker { 0%, 100% { transform: scale(1) rotate(-2deg); } 50% { transform: scale(1.08) rotate(2deg); } }
+@media (prefers-reduced-motion: reduce) { .streak-flame.on { animation: none; } }
+.streak-count { font-size: 1.4rem; }
+.streak-count b { font-size: 2rem; color: #e8590c; }
+.streak-dots { display: flex; gap: 5px; flex-wrap: wrap; }
+.streak-dot { width: 20px; height: 20px; border-radius: 5px; background: var(--mist); }
+.streak-dot.played { background: var(--brand); }
+.streak-dot.today { outline: 2px solid #e8590c; outline-offset: 1px; }
+.badge-tile { border: 1px solid var(--mist); border-radius: 12px; background: var(--surface, #fff); }
+.badge-tile .badge-icon { font-size: 2.2rem; line-height: 1.2; }
+.badge-tile.locked { opacity: .5; filter: grayscale(1); }

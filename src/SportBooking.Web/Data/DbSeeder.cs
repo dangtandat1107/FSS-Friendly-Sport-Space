@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SportBooking.Web.Models;
+using SportBooking.Web.Services;
 namespace SportBooking.Web.Data;
 
 public static class DbSeeder
@@ -77,6 +78,7 @@ public static class DbSeeder
         }
         await db.SaveChangesAsync();
 
+        await SeedBadgesAsync(db);
         await SeedDemoReviewsAsync(db, customer);
 
         // Nhân viên demo phụ trách 3 sân (cầu lông A1, bóng đá mini B1, tennis C1) để thử luồng sự cố
@@ -88,6 +90,20 @@ public static class DbSeeder
                 db.Staffs.Add(new Staff { UserId = staff.Id, CourtId = c.Id });
             await db.SaveChangesAsync();
         }
+    }
+
+    // Danh mục huy hiệu chuỗi tập luyện. Mốc ngày lấy từ StreakPolicy; thêm huy hiệu mới chỉ cần thêm một dòng ở đây
+    private static async Task SeedBadgesAsync(AppDbContext db)
+    {
+        var all = new[]
+        {
+            new Badge { Code = "starter", Name = "Người mới bắt đầu", Icon = "🌱", RequiredStreakDays = StreakPolicy.StarterDays, Description = "Giữ chuỗi tập luyện 3 ngày liên tiếp" },
+            new Badge { Code = "warrior", Name = "Chiến binh", Icon = "⚔️", RequiredStreakDays = StreakPolicy.WarriorDays, Description = "Giữ chuỗi tập luyện 7 ngày liên tiếp" },
+            new Badge { Code = "legend", Name = "Huyền thoại", Icon = "👑", RequiredStreakDays = StreakPolicy.LegendDays, Description = "Giữ chuỗi tập luyện 30 ngày liên tiếp" }
+        };
+        var existing = await db.Badges.Select(b => b.Code).ToListAsync();
+        foreach (var b in all.Where(b => !existing.Contains(b.Code))) db.Badges.Add(b);
+        await db.SaveChangesAsync();
     }
 
     // Giao diện không cho đặt giờ trong quá khứ, nên cần lịch đã qua và đánh giá mẫu để thử ngay luồng đánh giá
