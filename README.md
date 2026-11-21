@@ -54,7 +54,7 @@ Chưa làm so với kế hoạch tuần 4:
 - Lịch đặt sân dạng lưới (hàng là sân, cột là khung giờ; xanh còn trống, đỏ đã đặt, vàng đang thanh toán), bấm ô xanh để đặt
 - Toast khi đặt sân thành công kèm mã đơn FSS-XXXXX
 - Giao diện tối, lưu lựa chọn trong `localStorage`
-- Chuỗi tập luyện (Streak) và huy hiệu: tính số ngày đặt sân liên tiếp, thống kê cá nhân, huy hiệu 3, 7, 30 ngày hiện ở trang Hồ sơ (bảng `UserStats`, `Badges`, `UserBadges`, migration `AddGamification`)
+- Chuỗi tập luyện (Streak) cho phép nghỉ xen kẽ (hạn giữ chuỗi 3 ngày), thống kê cá nhân và huy hiệu (bảng `UserStats`, `Badges`, `UserBadges`, migrations `AddGamification` và `AddGraceDaysToUserStats`)
 - Ghi nhận sự cố trên sân và vai trò Nhân viên sân (Staff): luồng SOS trong giờ chơi và luồng phản hồi sau giờ chơi, SLA, tự động leo thang lên Admin (bảng `Staffs`, `Incidents`, `IncidentLogs`, migration `AddIncidents`)
 
 Còn lại:
@@ -78,7 +78,7 @@ Còn lại:
 - Xem lịch trống theo ngày, đặt sân. Lịch đã thanh toán chỉ hủy được trước giờ chơi ít nhất 2 giờ; lịch chưa thanh toán hủy lúc nào cũng được
 - Thanh toán chuyển khoản qua mã VietQR (tự điền số tiền và nội dung), giữ chỗ 15 phút. Khách báo đã chuyển khoản, chủ sân đối chiếu tài khoản ngân hàng rồi xác nhận. MoMo mới ở mức mô phỏng
 - Báo sự cố: bấm SOS khi đang trong giờ chơi, hoặc gửi phản hồi, khiếu nại trong 48 giờ sau khi hết giờ chơi
-- Chuỗi tập luyện: icon 🔥 và lời động viên theo số ngày, thống kê (ngày tập tháng này và năm nay, chuỗi hiện tại và dài nhất, tổng số lần đặt), huy hiệu 🌱 ⚔️ 👑 ở trang Hồ sơ
+- Chuỗi tập luyện: icon 🔥, lời động viên theo số ngày, cảnh báo hạn giữ chuỗi khi đang nghỉ, thống kê (ngày tập tháng này và năm nay, chuỗi hiện tại và dài nhất, ngày nghỉ hợp lý đã dùng, tổng số lần đặt), huy hiệu 🌱 ⚔️ 🛡️ 👑 ở trang Hồ sơ
 - Mới ở tuần 5, đang kiểm thử: lịch dạng lưới, đánh giá sân 1 đến 5 sao, toast khi đặt thành công, giao diện tối, báo sự cố, chuỗi tập luyện
 
 **Chủ sân**
@@ -211,10 +211,14 @@ Một bảng `Incidents` cho cả hai luồng, phân biệt bằng `IsRealTime`.
 - **Liên kết với tính năng khác:** trang Quản lý sân hiện cảnh báo sự cố cơ sở vật chất chưa xử lý của từng sân. Hệ thống Gamification và Voucher chưa có nên hiện tại dùng điểm uy tín `TrustScore`; chủ sân chỉ ghi nhận loại bồi thường đề xuất, hệ thống không tự chuyển tiền hay tạo voucher.
 
 ## Chuỗi tập luyện (Streak) và huy hiệu
-- **Cách tính:** chuỗi là số ngày liên tiếp có buổi chơi đã xác nhận. Hệ thống tính lại từ bảng `Bookings` (nguồn thật) mỗi khi lịch được xác nhận hoặc hủy và mỗi khi khách mở Hồ sơ hoặc Lịch của tôi, nên đúng cả khi các lịch được xác nhận không theo thứ tự ngày hay có lịch bị hủy (`StreakService`, hàm thuần `StreakCalculator.Compute` để dễ viết unit test).
-- **Quy tắc:** ngày liền sau ngày trước thì chuỗi dài thêm 1, nếu không thì bắt đầu lại từ 1. Chuỗi còn "sống" khi ngày chơi gần nhất là hôm nay hoặc hôm qua, xa hơn thì về 0 (chuỗi dài nhất vẫn giữ). Nhiều lượt trong cùng một ngày chỉ tính là 1 ngày.
-- **Lịch đặt trước:** chỉ tính các ngày đã tới (từ hôm nay trở về trước), để không thể đặt trước 7 ngày liền rồi lấy huy hiệu. Lịch đặt trước sẽ được tính khi ngày đó tới.
-- **Huy hiệu:** 🌱 Người mới bắt đầu (3 ngày), ⚔️ Chiến binh (7 ngày), 👑 Huyền thoại (30 ngày). Danh mục lưu trong bảng `Badges`; đạt rồi thì giữ mãi, huy hiệu mới được báo bằng toast.
+- **Hạn giữ chuỗi:** người tập cần ngày nghỉ để phục hồi nên không bắt buộc đặt sân mỗi ngày. Chuỗi chỉ bị mất khi khoảng cách giữa 2 ngày đặt sân lớn hơn 3 ngày (tức nghỉ liền từ 3 ngày). Nghỉ 1 hoặc 2 ngày thì chuỗi giữ nguyên, không tăng, không giảm; ngày đặt kế tiếp lại tăng thêm 1. Mốc 3 ngày là `StreakPolicy.MaxGapDays`.
+- **Ví dụ:** đặt T2, T3, T4 thì chuỗi là 3. Nghỉ T5, T6 thì chuỗi vẫn là 3 (còn 1 ngày để giữ chuỗi). Đặt T7 thì chuỗi là 4. Nghỉ liền 4 ngày thì chuỗi về 0 (chuỗi dài nhất vẫn giữ); đặt lại thì chuỗi bắt đầu từ 1.
+- **Thông báo khi đang nghỉ:** trang Hồ sơ báo còn bao nhiêu ngày để giữ chuỗi. Còn 1 ngày thì cảnh báo "⚠️ Bạn còn 1 ngày để giữ chuỗi. Hãy đặt sân ngày mai nhé!"; ngày cuối thì báo đỏ. Hạn giữ chuỗi tính riêng cho từng khoảng nghỉ, không có hạn mức theo tháng; "số ngày nghỉ hợp lý đã dùng trong tháng" chỉ là số liệu thống kê.
+- **Cách tính:** chuỗi tính lại từ bảng `Bookings` (nguồn thật) mỗi khi lịch được xác nhận hoặc hủy và mỗi khi khách mở Hồ sơ hoặc Lịch của tôi, nên đúng cả khi các lịch được xác nhận không theo thứ tự ngày hay có lịch bị hủy (`StreakService`, hàm thuần `StreakCalculator.Compute` để dễ viết unit test). Nhiều lượt trong cùng một ngày chỉ tính là 1 ngày. Chuỗi đếm số ngày đã đặt sân, không đếm ngày nghỉ xen giữa.
+- **Lịch đặt trước:** chỉ tính các ngày đã tới (từ hôm nay trở về trước), để không thể đặt trước nhiều ngày rồi lấy huy hiệu. Lịch đặt trước sẽ được tính khi ngày đó tới.
+- **Hủy lịch:** lịch đã hủy không được tính, ngày đó trở thành ngày nghỉ và vẫn nằm trong hạn giữ chuỗi, hệ thống không phạt thêm.
+- **Sự cố y tế:** khách báo sự cố y tế (SOS hoặc đau nhức sau buổi chơi, trừ báo cáo bị từ chối) không bị tính là bỏ tập: ngày báo làm mới hạn giữ chuỗi, không làm chuỗi tăng thêm.
+- **Huy hiệu:** 🌱 Người mới bắt đầu (chuỗi 3 ngày), ⚔️ Chiến binh (7 ngày), 🛡️ Kỷ luật thép (chuỗi dài nhất từ 14 ngày), 👑 Huyền thoại (30 ngày). Danh mục lưu trong bảng `Badges`; đạt rồi thì giữ mãi, huy hiệu mới được báo bằng toast.
 - **Liên kết với tính năng khác:** `IStreakService.GetStatsAsync(userId)` trả về thống kê đã làm mới, là nơi các tính năng sau (ưu đãi nước uống khi chuỗi từ 7 ngày) đọc `CurrentStreak`, không đọc thẳng bảng `UserStats` vì giá trị lưu sẵn có thể cũ nếu chuỗi vừa đứt.
 
 ## Cấu trúc thư mục
