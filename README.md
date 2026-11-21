@@ -54,12 +54,13 @@ Chưa làm so với kế hoạch tuần 4:
 - Lịch đặt sân dạng lưới (hàng là sân, cột là khung giờ; xanh còn trống, đỏ đã đặt, vàng đang thanh toán), bấm ô xanh để đặt
 - Toast khi đặt sân thành công kèm mã đơn FSS-XXXXX
 - Giao diện tối, lưu lựa chọn trong `localStorage`
+- Chuỗi tập luyện (Streak) và huy hiệu: tính số ngày đặt sân liên tiếp, thống kê cá nhân, huy hiệu 3, 7, 30 ngày hiện ở trang Hồ sơ (bảng `UserStats`, `Badges`, `UserBadges`, migration `AddGamification`)
 - Ghi nhận sự cố trên sân và vai trò Nhân viên sân (Staff): luồng SOS trong giờ chơi và luồng phản hồi sau giờ chơi, SLA, tự động leo thang lên Admin (bảng `Staffs`, `Incidents`, `IncidentLogs`, migration `AddIncidents`)
 
 Còn lại:
 - Unit test cho `BookingService` và điều kiện đánh giá (chuyển từ tuần 4)
 - Hoàn thiện ERD, Use Case và đưa vào thư mục `docs/`
-- Tiếp tục lộ trình đã chốt ở tuần 3: order nước kèm, khuyến mãi, chuỗi tập luyện, rồi 2 chức năng AI
+- Tiếp tục lộ trình đã chốt ở tuần 3: order nước kèm và khuyến mãi (sẽ đọc chuỗi tập luyện để tặng nước), rồi 2 chức năng AI
 
 ## Công nghệ
 - ASP.NET Core 8 MVC, Razor Views, Bootstrap 5
@@ -77,7 +78,8 @@ Còn lại:
 - Xem lịch trống theo ngày, đặt sân. Lịch đã thanh toán chỉ hủy được trước giờ chơi ít nhất 2 giờ; lịch chưa thanh toán hủy lúc nào cũng được
 - Thanh toán chuyển khoản qua mã VietQR (tự điền số tiền và nội dung), giữ chỗ 15 phút. Khách báo đã chuyển khoản, chủ sân đối chiếu tài khoản ngân hàng rồi xác nhận. MoMo mới ở mức mô phỏng
 - Báo sự cố: bấm SOS khi đang trong giờ chơi, hoặc gửi phản hồi, khiếu nại trong 48 giờ sau khi hết giờ chơi
-- Mới ở tuần 5, đang kiểm thử: lịch dạng lưới, đánh giá sân 1 đến 5 sao, toast khi đặt thành công, giao diện tối, báo sự cố
+- Chuỗi tập luyện: icon 🔥 và lời động viên theo số ngày, thống kê (ngày tập tháng này và năm nay, chuỗi hiện tại và dài nhất, tổng số lần đặt), huy hiệu 🌱 ⚔️ 👑 ở trang Hồ sơ
+- Mới ở tuần 5, đang kiểm thử: lịch dạng lưới, đánh giá sân 1 đến 5 sao, toast khi đặt thành công, giao diện tối, báo sự cố, chuỗi tập luyện
 
 **Chủ sân**
 - Thêm, sửa sân (kèm loại sân, mặt sân, ảnh riêng), đổi trạng thái bảo trì
@@ -107,11 +109,12 @@ Còn lại:
 | Thanh toán | Một phần: VietQR và chủ sân xác nhận thủ công. MoMo mới mô phỏng, chưa có cổng thanh toán thật, chưa tự đối soát |
 | Đánh giá sân, lịch dạng lưới, toast, giao diện tối | Đã code, đang kiểm thử |
 | Ghi nhận sự cố và nhân viên sân | Đã code, đang kiểm thử |
+| Chuỗi tập luyện (Gamification) và huy hiệu | Đã code, đang kiểm thử |
 | Unit test | Chưa (repo chưa có project test) |
 | Tài liệu thiết kế (ERD, Use Case) | Chưa đưa vào repo |
 | Thống kê nâng cao (biểu đồ, theo thời gian, theo sân) | Chưa |
 | Cache dữ liệu, hàng đợi, thời gian thực (SignalR), reverse proxy HTTPS | Chưa. `IMemoryCache` hiện chỉ dùng để giới hạn thử mã quên mật khẩu. Đã có 1 tiến trình nền (leo thang sự cố quá hạn); thông báo SOS dùng polling 15 giây. Giữ chỗ 15 phút được kiểm tra khi truy vấn, chưa có tiến trình nền dọn lịch hết hạn |
-| Hạng mục mở rộng đã chốt ở tuần 3 còn lại (order nước, khuyến mãi, chuỗi tập luyện) | Chưa |
+| Hạng mục mở rộng đã chốt ở tuần 3 còn lại (order nước kèm, khuyến mãi) | Chưa |
 | Phần AI (chatbot đặt sân, tư vấn môn thể thao, dự báo giờ cao điểm), lớp kiểm soát AI, bộ kiểm thử AI | Chưa |
 | Triển khai public có HTTPS | Chưa |
 
@@ -207,13 +210,20 @@ Một bảng `Incidents` cho cả hai luồng, phân biệt bằng `IsRealTime`.
 - **Báo trùng:** chỉ gộp sự cố cơ sở vật chất của cùng một sân trong cùng khoảng thời gian (60 phút với SOS, 24 giờ với phản hồi); báo cáo gốc được xử lý, các báo cáo trùng đi theo. Sự cố y tế, an ninh, mất đồ, thanh toán là việc riêng của từng người nên không bao giờ gộp.
 - **Liên kết với tính năng khác:** trang Quản lý sân hiện cảnh báo sự cố cơ sở vật chất chưa xử lý của từng sân. Hệ thống Gamification và Voucher chưa có nên hiện tại dùng điểm uy tín `TrustScore`; chủ sân chỉ ghi nhận loại bồi thường đề xuất, hệ thống không tự chuyển tiền hay tạo voucher.
 
+## Chuỗi tập luyện (Streak) và huy hiệu
+- **Cách tính:** chuỗi là số ngày liên tiếp có buổi chơi đã xác nhận. Hệ thống tính lại từ bảng `Bookings` (nguồn thật) mỗi khi lịch được xác nhận hoặc hủy và mỗi khi khách mở Hồ sơ hoặc Lịch của tôi, nên đúng cả khi các lịch được xác nhận không theo thứ tự ngày hay có lịch bị hủy (`StreakService`, hàm thuần `StreakCalculator.Compute` để dễ viết unit test).
+- **Quy tắc:** ngày liền sau ngày trước thì chuỗi dài thêm 1, nếu không thì bắt đầu lại từ 1. Chuỗi còn "sống" khi ngày chơi gần nhất là hôm nay hoặc hôm qua, xa hơn thì về 0 (chuỗi dài nhất vẫn giữ). Nhiều lượt trong cùng một ngày chỉ tính là 1 ngày.
+- **Lịch đặt trước:** chỉ tính các ngày đã tới (từ hôm nay trở về trước), để không thể đặt trước 7 ngày liền rồi lấy huy hiệu. Lịch đặt trước sẽ được tính khi ngày đó tới.
+- **Huy hiệu:** 🌱 Người mới bắt đầu (3 ngày), ⚔️ Chiến binh (7 ngày), 👑 Huyền thoại (30 ngày). Danh mục lưu trong bảng `Badges`; đạt rồi thì giữ mãi, huy hiệu mới được báo bằng toast.
+- **Liên kết với tính năng khác:** `IStreakService.GetStatsAsync(userId)` trả về thống kê đã làm mới, là nơi các tính năng sau (ưu đãi nước uống khi chuỗi từ 7 ngày) đọc `CurrentStreak`, không đọc thẳng bảng `UserStats` vì giá trị lưu sẵn có thể cũ nếu chuỗi vừa đứt.
+
 ## Cấu trúc thư mục
 ```
 src/SportBooking.Web
 ├── Controllers/   Account, Profile, Home, Courts, Bookings, Payments, Reviews, Incidents, Staff, Admin
-├── Models/        Court, Booking, Payment, Review, Staff, Incident, ApplicationUser, Enums
+├── Models/        Court, Booking, Payment, Review, Staff, Incident, UserStats (Badge, UserBadge), ApplicationUser, Enums
 ├── Data/          AppDbContext, DbSeeder
-├── Services/      BookingService, PaymentService, IncidentService, IncidentEscalationWorker, VietQrService, EmailService, AvatarService, ImageStore, AppClaimsFactory
+├── Services/      BookingService, PaymentService, IncidentService, IncidentEscalationWorker, StreakService, VietQrService, EmailService, AvatarService, ImageStore, AppClaimsFactory
 ├── Extensions/    CourtOptions, ReviewExtensions, SportInfo, EnumExtensions
 ├── ViewModels/    Các model cho form và trang
 ├── Views/         Razor Views (Shared/_CalendarGrid là lịch dạng lưới)
