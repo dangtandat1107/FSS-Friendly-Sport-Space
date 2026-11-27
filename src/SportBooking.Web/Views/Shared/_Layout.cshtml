@@ -45,6 +45,11 @@
         {
           <li class="nav-item"><a class="nav-link" asp-controller="Courts" asp-action="Manage">Quản lý sân</a></li>
           <li class="nav-item"><a class="nav-link" asp-controller="Bookings" asp-action="Manage">Duyệt lịch</a></li>
+          <li class="nav-item"><a class="nav-link" asp-controller="Products" asp-action="Index">Đồ uống</a></li>
+        }
+        @if (User.IsInRole("Owner") || User.IsInRole("Admin") || User.IsInRole("Staff"))
+        {
+          <li class="nav-item"><a class="nav-link" asp-controller="DrinkOrders" asp-action="Index">Đơn nước</a></li>
         }
         @if (User.IsInRole("Owner") || User.IsInRole("Admin") || User.IsInRole("Staff"))
         {

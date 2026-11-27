@@ -48,7 +48,7 @@
     <td>@b.Court?.Name</td>
     <td>@b.Customer?.FullName</td>
     <td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td>
-    <td>@b.TotalPrice.ToString("N0")</td>
+    <td>@b.GrandTotal.ToString("N0")@if (b.DrinksTotal > 0 || b.DrinkStatus != DrinkOrderStatus.None) { <div class="small text-muted">🥤 kèm đơn nước @(b.DrinksTotal > 0 ? "(" + b.DrinksTotal.ToString("N0") + ")" : "(quà tặng)")</div> }</td>
     <td>@(b.Status == BookingStatus.Pending && b.IsExpired && !awaiting ? "Hết hạn thanh toán" : b.Status.DisplayName())</td>
     <td>@(paid != null ? paid.Method.DisplayName() : awaiting ? "Chờ xác nhận" : "-")</td>
     <td class="text-end">

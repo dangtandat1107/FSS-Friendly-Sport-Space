@@ -28,7 +28,9 @@ public class PaymentService : IPaymentService
     private readonly AppDbContext _db;
     private readonly ILogger<PaymentService> _log;
     private readonly IStreakService _streaks;
-    public PaymentService(AppDbContext db, ILogger<PaymentService> log, IStreakService streaks) { _db = db; _log = log; _streaks = streaks; }
+    private readonly IDrinkOrderService _drinks;
+    public PaymentService(AppDbContext db, ILogger<PaymentService> log, IStreakService streaks, IDrinkOrderService drinks)
+    { _db = db; _log = log; _streaks = streaks; _drinks = drinks; }
 
     public async Task<PaymentResult> StartAsync(string customerId, int bookingId, PaymentMethod method)
     {
@@ -56,7 +58,7 @@ public class PaymentService : IPaymentService
         var payment = new Payment
         {
             BookingId = booking.Id,
-            Amount = booking.TotalPrice,
+            Amount = booking.GrandTotal,   // tiền sân + tiền nước; mã VietQR dựng theo số này
             Method = method,
             Status = PaymentStatus.Pending,
             TransactionCode = $"FSS{booking.Id}{Random.Shared.Next(1000, 9999)}",
@@ -126,6 +128,9 @@ public class PaymentService : IPaymentService
         // Lịch vừa được xác nhận: cập nhật chuỗi tập luyện của khách (lỗi ở đây chỉ ghi log, không làm hỏng việc xác nhận)
         await _streaks.UpdateStreakAsync(booking.CustomerId, booking.StartTime);
 
+        // Đơn nước đi kèm: trừ kho thật và chuyển sang "Chờ chuẩn bị" để nhân viên sân thấy
+        await _drinks.OnConfirmedAsync(booking);
+
         _log.LogInformation("Payment {Code} confirmed by staff {Staff}", payment.TransactionCode, staffId);
         return new(true, null, payment);
     }
@@ -163,6 +168,7 @@ public class PaymentService : IPaymentService
             .Where(p => p.BookingId == booking.Id && p.Status == PaymentStatus.Pending).ToListAsync();
         foreach (var p in pending) p.Status = PaymentStatus.Cancelled;
         await _db.SaveChangesAsync();
+        await _drinks.OnCancelledAsync(booking);   // đơn nước đang giữ hàng thì chuyển sang đã hủy
         _log.LogInformation("Booking {Id} hết hạn thanh toán, đã hủy", booking.Id);
     }
 }

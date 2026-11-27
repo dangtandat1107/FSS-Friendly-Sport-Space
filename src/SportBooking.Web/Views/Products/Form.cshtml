@@ -1,0 +1,46 @@
+@model ProductFormVm
+@{
+    ViewData["Title"] = Model.Id == 0 ? "Thêm sản phẩm" : "Sửa sản phẩm";
+    var courts = ViewBag.Courts as List<Court> ?? new List<Court>();
+    var courtItems = new SelectList(courts, nameof(Court.Id), nameof(Court.Name));
+}
+<div class="row"><div class="col-lg-6">
+  <div class="panel-card p-4">
+    <h4 class="mb-3">@ViewData["Title"]</h4>
+    <form method="post" enctype="multipart/form-data">
+      <input type="hidden" asp-for="Id" />
+      <div asp-validation-summary="All" class="text-danger"></div>
+
+      @if (Model.Id == 0)
+      {
+        <div class="mb-3">
+          <label class="form-label" asp-for="CourtId"></label>
+          <select class="form-select" asp-for="CourtId" asp-items="courtItems"><option value="0">-- Chọn sân --</option></select>
+        </div>
+      }
+      else
+      {
+        <div class="mb-3"><label class="form-label">Sân</label><div class="form-control-plaintext fw-semibold">@Model.CourtName</div></div>
+      }
+
+      <div class="mb-3"><label class="form-label" asp-for="Name"></label><input class="form-control" asp-for="Name" /></div>
+      <div class="mb-3"><label class="form-label" asp-for="Description"></label><textarea class="form-control" asp-for="Description" rows="2"></textarea></div>
+      <div class="row">
+        <div class="col-md-6 mb-3"><label class="form-label" asp-for="Category"></label><select class="form-select" asp-for="Category" asp-items="Html.GetEnumSelectList<ProductCategory>()"></select></div>
+        <div class="col-md-3 mb-3"><label class="form-label" asp-for="Price"></label><input class="form-control" asp-for="Price" type="number" step="1000" min="1000" /></div>
+        <div class="col-md-3 mb-3"><label class="form-label" asp-for="Stock"></label><input class="form-control" asp-for="Stock" type="number" min="0" /></div>
+      </div>
+      <div class="form-check form-switch mb-3"><input class="form-check-input" type="checkbox" asp-for="IsActive" /><label class="form-check-label" asp-for="IsActive"></label></div>
+
+      <div class="mb-3">
+        <label class="form-label" asp-for="Image"></label>
+        @if (!string.IsNullOrEmpty(Model.ImageUrl)) { <div class="mb-2"><img class="product-thumb" style="width:72px;height:72px" src="@Model.ImageUrl" alt="Ảnh hiện tại" /></div> }
+        <input class="form-control" type="file" asp-for="Image" accept="image/jpeg,image/png,image/webp" />
+        <div class="form-text">JPG, PNG hoặc WEBP, tối đa 4 MB. Không có ảnh thì hiện biểu tượng theo loại.</div>
+      </div>
+
+      <button class="btn btn-success">Lưu</button>
+      <a class="btn btn-link" asp-action="Index">Hủy</a>
+    </form>
+  </div>
+</div></div>

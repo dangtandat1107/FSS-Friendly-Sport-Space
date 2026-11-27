@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SportBooking.Web.Data;
+using SportBooking.Web.Extensions;
 using SportBooking.Web.Models;
 using SportBooking.Web.Services;
+using SportBooking.Web.ViewModels;
 namespace SportBooking.Web.Controllers;
 
 [Authorize]
@@ -13,7 +15,15 @@ public class BookingsController : Controller
     private readonly AppDbContext _db;
     private readonly IBookingService _svc;
     private readonly IStreakService _streaks;
-    public BookingsController(AppDbContext db, IBookingService svc, IStreakService streaks) { _db = db; _svc = svc; _streaks = streaks; }
+    private readonly IProductService _products;
+    private readonly IPromotionService _promos;
+    private readonly IDrinkOrderService _drinks;
+    private readonly IIncidentService _incidents;
+    private readonly IImageStore _images;
+
+    public BookingsController(AppDbContext db, IBookingService svc, IStreakService streaks, IProductService products,
+        IPromotionService promos, IDrinkOrderService drinks, IIncidentService incidents, IImageStore images)
+    { _db = db; _svc = svc; _streaks = streaks; _products = products; _promos = promos; _drinks = drinks; _incidents = incidents; _images = images; }
 
     private string UserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
@@ -29,6 +39,116 @@ public class BookingsController : Controller
         }
         TempData["Err"] = r.Error;
         return RedirectToAction("Details", "Courts", new { id = courtId, date = date.ToString("yyyy-MM-dd") });
+    }
+
+    // ---------- Đặt sân kèm đồ uống (hộp thoại trên lịch dạng lưới) ----------
+
+    // Danh sách sản phẩm đang bán của sân, kèm số còn có thể đặt, chuỗi tập luyện của khách và các khuyến mãi đang bật. Hộp thoại gọi bằng AJAX
+    [Authorize(Roles = "Customer"), HttpGet]
+    public async Task<IActionResult> GetProductsByCourt(int courtId)
+    {
+        if (!await _db.Courts.AnyAsync(c => c.Id == courtId)) return NotFound();
+        Response.Headers.CacheControl = "no-store";
+
+        var stock = await _products.GetAvailableAsync(courtId);
+        var streak = (await _streaks.GetStatsAsync(UserId)).CurrentStreak;   // lấy qua IStreakService để chuỗi luôn được làm mới
+        return Json(new OrderDrinksViewModel
+        {
+            CourtId = courtId,
+            StreakDays = streak,
+            MaxPerProduct = DrinkPolicy.MaxPerProduct,
+            Products = stock.Select(s => new ProductCardVm
+            {
+                Id = s.Product.Id, Name = s.Product.Name, Description = s.Product.Description, Price = s.Product.Price,
+                Category = s.Product.Category.DisplayName(), Icon = DrinkPolicy.Icon(s.Product.Category),
+                ImageUrl = _images.GetUrl("products", s.Product.Id.ToString()),
+                Available = s.Available, MaxQty = Math.Min(DrinkPolicy.MaxPerProduct, s.Available)
+            }).ToList()
+        });
+    }
+
+    // Xem trước đơn nước: server tính tiền nước, quà tặng và khuyến mãi. items có dạng "mãSP:số lượng,mãSP:số lượng"
+    // Chỉ đọc, không ghi gì nên dùng GET.
+    [Authorize(Roles = "Customer"), HttpGet]
+    public async Task<IActionResult> QuoteDrinks(int courtId, string? items)
+    {
+        Response.Headers.CacheControl = "no-store";
+        var streak = (await _streaks.GetStatsAsync(UserId)).CurrentStreak;
+        var q = await _promos.QuoteAsync(courtId, ParseItems(items), streak);
+        return Json(new OrderDrinksViewModel
+        {
+            CourtId = courtId, StreakDays = streak, Ok = q.Ok, Errors = q.Errors, DrinksTotal = q.DrinksTotal,
+            Lines = q.Lines.Select(l => new OrderLineVm
+            {
+                ProductId = l.ProductId, Name = l.Name, Quantity = l.Quantity, UnitPrice = l.UnitPrice, LineTotal = l.LineTotal, IsFree = l.IsFree
+            }).ToList(),
+            Banners = q.Banners.Select(b => new PromoBannerVm { Kind = b.Kind, Text = b.Text }).ToList()
+        });
+    }
+
+    private static List<OrderLine> ParseItems(string? items)
+    {
+        var list = new List<OrderLine>();
+        foreach (var part in (items ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries).Take(30))
+        {
+            var kv = part.Split(':');
+            if (kv.Length == 2 && int.TryParse(kv[0], out var id) && int.TryParse(kv[1], out var qty)) list.Add(new OrderLine(id, qty));
+        }
+        return list;
+    }
+
+    // Nút "Thêm vào đơn và thanh toán": tạo lịch kèm đơn nước. Giá, tồn kho và khuyến mãi được server tính lại, không tin dữ liệu từ trình duyệt
+    [Authorize(Roles = "Customer"), HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateBookingWithItems(BookingViewModel model)
+    {
+        if (model.Items.Count > 50) return BadRequest();
+        var streak = (await _streaks.GetStatsAsync(UserId)).CurrentStreak;
+        var lines = model.Items.Select(i => new OrderLine(i.ProductId, i.Quantity)).ToList();
+
+        var r = await _svc.CreateAsync(UserId, model.CourtId, model.Date.Date.AddHours(model.Hour), model.Hours, lines, streak);
+        if (r.Success)
+        {
+            var b = r.Booking!;
+            TempData["Toast"] = $"✅ Đặt sân thành công! Mã đơn: {b.Code}";
+            TempData["Msg"] = (b.DrinkStatus == DrinkOrderStatus.None ? "" : "Đơn nước đã được thêm vào đơn. ")
+                + $"Đã giữ chỗ. Vui lòng thanh toán trong {IBookingService.PaymentTimeoutMinutes} phút.";
+            return RedirectToAction("Pay", "Payments", new { bookingId = b.Id });
+        }
+        TempData["Err"] = r.Error;
+        return RedirectToAction("Details", "Courts", new { id = model.CourtId, date = model.Date.ToString("yyyy-MM-dd") });
+    }
+
+    // Chi tiết một lịch đặt: thông tin sân, thanh toán và "Đơn hàng kèm theo" (để khách xem và nhân viên biết cần chuẩn bị gì)
+    [Authorize(Roles = "Customer")]
+    public async Task<IActionResult> Detail(int id)
+    {
+        var b = await _db.Bookings.AsNoTracking().Include(x => x.Court).Include(x => x.Payments).Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Id == id && x.CustomerId == UserId);
+        if (b == null) return NotFound();
+        return View("BookingDetail", b);
+    }
+
+    // Khách báo "không nhận được nước đã đặt": tạo sự cố tự động. Luồng SOS hay phản hồi do IncidentService tự xác định theo giờ
+    [Authorize(Roles = "Customer"), HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReportMissingDrinks(int id)
+    {
+        var b = await _db.Bookings.AsNoTracking().Include(x => x.Court).Include(x => x.Items)
+            .FirstOrDefaultAsync(x => x.Id == id && x.CustomerId == UserId);
+        if (b == null) return NotFound();
+        if (b.Status != BookingStatus.Confirmed || b.Items.Count == 0 || b.StartTime > DateTime.Now)
+        {
+            TempData["Err"] = "Chỉ báo được khi lịch đã xác nhận, có đơn nước và đã đến giờ chơi.";
+            return RedirectToAction(nameof(Detail), new { id });
+        }
+
+        var list = string.Join(", ", b.Items.Select(i => $"{i.Quantity} x {i.ProductName}"));
+        var r = await _incidents.CreateIncidentAsync(UserId, new CreateIncidentRequest(
+            b.Id, IncidentCategory.Operational, ComplaintReason.Other,
+            $"Không nhận được đồ uống đã đặt kèm lịch {b.Code} tại {b.Court?.Name}. Đơn nước: {list}."));
+        if (!r.Ok) { TempData["Err"] = r.Error; return RedirectToAction(nameof(Detail), new { id }); }
+
+        TempData["Toast"] = $"✅ Đã gửi báo cáo {r.Incident!.Code}. Chủ sân sẽ kiểm tra đơn nước giúp bạn.";
+        return RedirectToAction("Details", "Incidents", new { id = r.Incident.Id });
     }
 
     [Authorize(Roles = "Customer")]
@@ -66,6 +186,7 @@ public class BookingsController : Controller
         ApplyCancel(b);
         await _db.SaveChangesAsync();
         await _streaks.UpdateStreakAsync(b.CustomerId, b.StartTime);   // lịch hủy không còn được tính vào chuỗi
+        await _drinks.OnCancelledAsync(b);                             // đơn nước: hoàn kho nếu chưa chuẩn bị. Tiền nước được ghi nhận hoàn cùng đơn
 
         TempData["Msg"] = hadPaid ? "Đã hủy lịch. Khoản thanh toán được ghi nhận hoàn tiền."
             : hadAwaiting ? "Đã hủy lịch. Nếu bạn đã chuyển tiền, hãy liên hệ chủ sân để được hoàn lại."
@@ -103,6 +224,8 @@ public class BookingsController : Controller
         await _db.SaveChangesAsync();
         if (status is BookingStatus.Confirmed or BookingStatus.Cancelled)
             await _streaks.UpdateStreakAsync(b.CustomerId, b.StartTime);   // xác nhận thì tính vào chuỗi, hủy thì loại ra
+        if (status == BookingStatus.Confirmed) await _drinks.OnConfirmedAsync(b);
+        else if (status == BookingStatus.Cancelled) await _drinks.OnCancelledAsync(b);
         return RedirectToAction(nameof(Manage));
     }
 

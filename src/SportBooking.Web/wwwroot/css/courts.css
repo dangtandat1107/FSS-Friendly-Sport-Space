@@ -71,3 +71,52 @@ button.cal-free:focus-visible { outline: 2px solid #14532d; outline-offset: 1px;
 .badge-tile { border: 1px solid var(--mist); border-radius: 12px; background: var(--surface, #fff); }
 .badge-tile .badge-icon { font-size: 2.2rem; line-height: 1.2; }
 .badge-tile.locked { opacity: .5; filter: grayscale(1); }
+
+/* ---------- Đặt sân kèm đồ uống: hộp thoại ---------- */
+.book-dialog.drinks-dialog { width: min(96vw, 760px); max-height: 92vh; }
+.drinks-dialog form { padding: 0; display: flex; flex-direction: column; max-height: 92vh; }
+.bk-head { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid var(--mist); }
+.bk-body { flex: 1 1 auto; overflow-y: auto; padding: 1rem 1.25rem; }
+.bk-court { margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px dashed var(--mist); }
+.bk-foot { padding: .9rem 1.25rem 1rem; border-top: 1px solid var(--mist); background: var(--surface, #fff); }
+.bk-summary { display: grid; grid-template-columns: 1fr auto; gap: .15rem 1rem; margin-bottom: .5rem; }
+.bk-summary dt { font-weight: 500; color: var(--muted); }
+.bk-summary dd { margin: 0; text-align: right; font-weight: 600; }
+.bk-summary .bk-total { font-size: 1.1rem; color: var(--ink); }
+.gift-lines .gift-line { font-size: .85rem; color: #1b7a43; margin-bottom: .15rem; }
+.bk-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.bk-actions .btn { flex: 1 1 180px; }
+
+/* Thẻ sản phẩm */
+.drink-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .65rem; }
+.drink-card { border: 1px solid var(--mist); border-radius: 12px; padding: .65rem; text-align: center; background: var(--surface, #fff); display: flex; flex-direction: column; gap: .15rem; }
+.drink-card.soldout { opacity: .55; }
+.drink-img { height: 72px; display: flex; align-items: center; justify-content: center; }
+.drink-img img { max-height: 72px; max-width: 100%; border-radius: 8px; object-fit: cover; }
+.drink-icon { font-size: 2.4rem; line-height: 1; }
+.drink-name { font-weight: 600; font-size: .9rem; line-height: 1.25; }
+.drink-price { color: var(--brand-dark, #0c6a41); font-weight: 600; }
+.drink-stock { font-size: .75rem; color: var(--muted); }
+.drink-stock.low { color: #c2570c; font-weight: 600; }
+.drink-stock.out { color: #b42318; font-weight: 700; }
+.qty { display: flex; align-items: center; justify-content: center; gap: .6rem; margin-top: .3rem; }
+.qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1.5px solid var(--brand); background: transparent; color: var(--brand-dark, #0c6a41); font-size: 1.15rem; line-height: 1; cursor: pointer; }
+.qty-btn:hover:not(:disabled) { background: var(--brand); color: #fff; }
+.qty-btn:disabled { opacity: .35; cursor: not-allowed; }
+.qty-btn:focus-visible { outline: 2px solid var(--brand-dark, #0c6a41); outline-offset: 2px; }
+.qty-val { min-width: 1.5rem; font-weight: 700; text-align: center; }
+
+/* Banner khuyến mãi */
+.promo-banners { display: grid; gap: .4rem; margin-bottom: .7rem; }
+.promo-banner { border-radius: 10px; padding: .55rem .8rem; font-weight: 600; font-size: .9rem; }
+.promo-bulk { background: #d8f3dc; color: #14532d; }
+.promo-streak { background: #ffe8cc; color: #8a3b00; }
+
+/* Bảng đơn nước (Thanh toán, Chi tiết lịch, Đơn nước của nhân viên) */
+.drink-table td, .drink-table th { vertical-align: middle; }
+.drink-table .free-row { color: #1b7a43; }
+.drink-order-card { border: 1px solid var(--mist); border-radius: 12px; padding: .8rem 1rem; background: var(--surface, #fff); }
+.slot-head { font-weight: 700; font-size: 1.05rem; margin: 1.25rem 0 .5rem; }
+.product-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; }
+.product-thumb-icon { width: 44px; height: 44px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--mist); font-size: 1.4rem; }
+.bar-cell { height: 10px; background: var(--brand); border-radius: 5px; min-width: 2px; }

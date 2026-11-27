@@ -79,6 +79,7 @@ public static class DbSeeder
         await db.SaveChangesAsync();
 
         await SeedBadgesAsync(db);
+        await SeedDrinksAsync(db);
         await SeedDemoReviewsAsync(db, customer);
 
         // Nhân viên demo phụ trách 3 sân (cầu lông A1, bóng đá mini B1, tennis C1) để thử luồng sự cố
@@ -90,6 +91,32 @@ public static class DbSeeder
                 db.Staffs.Add(new Staff { UserId = staff.Id, CourtId = c.Id });
             await db.SaveChangesAsync();
         }
+    }
+
+    // Khuyến mãi mặc định và đồ uống mẫu cho mỗi sân. Ngưỡng khuyến mãi chỉnh trực tiếp trong bảng Promotions, không phải sửa code
+    private static async Task SeedDrinksAsync(AppDbContext db)
+    {
+        if (!await db.Promotions.AnyAsync(p => p.Type == PromotionType.BulkQuantityGift))
+            db.Promotions.Add(new Promotion { Name = "Mua từ 6 chai tặng 1 chai", Type = PromotionType.BulkQuantityGift, Condition = 6, Reward = 1 });
+        if (!await db.Promotions.AnyAsync(p => p.Type == PromotionType.StreakFreeWater))
+            db.Promotions.Add(new Promotion { Name = "Chuỗi tập luyện 7 ngày: free 1 nước suối", Type = PromotionType.StreakFreeWater, Condition = StreakPolicy.WarriorDays, Reward = 1 });
+
+        // Chỉ tạo sản phẩm mẫu khi chưa có sản phẩm nào, để không ghi đè dữ liệu chủ sân đã nhập
+        if (!await db.Products.AnyAsync())
+        {
+            var menu = new[]
+            {
+                (Name: "Nước suối 500ml", Desc: "Chai 500ml, mát lạnh", Cat: ProductCategory.Water, Price: 8000m, Stock: 100),
+                (Name: "Nước suối 1,5L", Desc: "Chai lớn dùng chung cả nhóm", Cat: ProductCategory.Water, Price: 15000m, Stock: 60),
+                (Name: "Nước điện giải 500ml", Desc: "Bù nước và khoáng sau khi chơi", Cat: ProductCategory.Electrolyte, Price: 15000m, Stock: 80),
+                (Name: "Nước ngọt lon 330ml", Desc: "Lon 330ml", Cat: ProductCategory.SoftDrink, Price: 12000m, Stock: 80),
+                (Name: "Khăn lạnh", Desc: "Khăn lạnh dùng một lần", Cat: ProductCategory.Towel, Price: 5000m, Stock: 100)
+            };
+            foreach (var courtId in await db.Courts.Select(c => c.Id).ToListAsync())
+                foreach (var m in menu)
+                    db.Products.Add(new Product { CourtId = courtId, Name = m.Name, Description = m.Desc, Category = m.Cat, Price = m.Price, Stock = m.Stock });
+        }
+        await db.SaveChangesAsync();
     }
 
     // Danh mục huy hiệu chuỗi tập luyện. Mốc ngày lấy từ StreakPolicy; thêm huy hiệu mới chỉ cần thêm một dòng ở đây

@@ -15,8 +15,11 @@
     <table class="table table-sm">
       <tr><th style="width:35%">Sân</th><td>@b.Court?.Name</td></tr>
       <tr><th>Thời gian</th><td>@b.StartTime.ToString("dd/MM/yyyy HH:mm") - @b.EndTime.ToString("HH:mm")</td></tr>
-      <tr><th>Tổng tiền</th><td class="fw-bold">@b.TotalPrice.ToString("N0") đ</td></tr>
     </table>
+
+    @* Chi tiết: tiền sân, đồ uống kèm (nếu có), khuyến mãi và tổng cộng. Mã QR ở bước sau dựng theo đúng tổng này *@
+    <div class="fw-semibold mb-1">Chi tiết thanh toán</div>
+    <div class="mb-3"><partial name="_OrderBreakdown" model="b" /></div>
 
     <form asp-action="Start" method="post">
       <input type="hidden" name="bookingId" value="@b.Id" />

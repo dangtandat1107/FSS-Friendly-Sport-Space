@@ -16,6 +16,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<IncidentLog> IncidentLogs => Set<IncidentLog>();
     public DbSet<UserStats> UserStats => Set<UserStats>();
     public DbSet<Badge> Badges => Set<Badge>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<BookingItem> BookingItems => Set<BookingItem>();
+    public DbSet<Promotion> Promotions => Set<Promotion>();
     public DbSet<UserBadge> UserBadges => Set<UserBadge>();
 
     protected override void OnModelCreating(ModelBuilder b)
@@ -34,6 +37,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         b.Entity<Booking>(e =>
         {
             e.Property(x => x.TotalPrice).HasPrecision(18, 0);
+            e.Property(x => x.DrinksTotal).HasPrecision(18, 0);
             e.HasOne(x => x.Court).WithMany(c => c.Bookings).HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
             e.HasOne(x => x.Customer).WithMany().HasForeignKey(x => x.CustomerId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => new { x.CourtId, x.StartTime, x.EndTime });
@@ -105,6 +109,28 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             e.HasOne(x => x.Badge).WithMany().HasForeignKey(x => x.BadgeId).OnDelete(DeleteBehavior.Restrict);
             e.HasIndex(x => new { x.UserId, x.BadgeId }).IsUnique();   // mỗi huy hiệu chỉ trao một lần cho mỗi khách
         });
+
+        b.Entity<Product>(e =>
+        {
+            e.Property(x => x.Name).HasMaxLength(120).IsRequired();
+            e.Property(x => x.Description).HasMaxLength(300);
+            e.Property(x => x.Price).HasPrecision(18, 0);
+            e.HasOne(x => x.Court).WithMany().HasForeignKey(x => x.CourtId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => new { x.CourtId, x.IsActive });
+        });
+
+        b.Entity<BookingItem>(e =>
+        {
+            e.Property(x => x.ProductName).HasMaxLength(120).IsRequired();
+            e.Property(x => x.UnitPrice).HasPrecision(18, 0);
+            e.Property(x => x.TotalPrice).HasPrecision(18, 0);
+            e.HasOne(x => x.Booking).WithMany(x => x.Items).HasForeignKey(x => x.BookingId).OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Product).WithMany().HasForeignKey(x => x.ProductId).OnDelete(DeleteBehavior.Restrict);
+            e.HasIndex(x => x.BookingId);
+            e.HasIndex(x => x.ProductId);
+        });
+
+        b.Entity<Promotion>(e => e.Property(x => x.Name).HasMaxLength(100).IsRequired());
 
         b.Entity<IncidentLog>(e =>
         {

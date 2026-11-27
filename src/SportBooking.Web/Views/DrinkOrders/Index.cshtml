@@ -1,0 +1,56 @@
+@model DrinkOrdersVm
+@{
+    ViewData["Title"] = "Đơn nước cần chuẩn bị";
+    var d = Model.Date;
+    var dateStr = d.ToString("yyyy-MM-dd");
+    var toPrepare = Model.Orders.Count(o => o.DrinkStatus == DrinkOrderStatus.ToPrepare);
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+  <h3 class="mb-0">Đơn nước cần chuẩn bị</h3>
+  <form method="get" class="d-flex gap-2 align-items-center">
+    <a class="btn btn-sm @(d == DateTime.Today ? "btn-success" : "btn-outline-success")" asp-action="Index" asp-route-date="@DateTime.Today.ToString("yyyy-MM-dd")">Hôm nay</a>
+    <a class="btn btn-sm @(d == DateTime.Today.AddDays(1) ? "btn-success" : "btn-outline-success")" asp-action="Index" asp-route-date="@DateTime.Today.AddDays(1).ToString("yyyy-MM-dd")">Ngày mai</a>
+    <input type="date" name="date" class="form-control form-control-sm" value="@dateStr" aria-label="Chọn ngày" onchange="this.form.submit()" />
+  </form>
+</div>
+<div class="text-muted mb-3">Ngày @d.ToString("dd/MM/yyyy"): @Model.Orders.Count đơn nước, @toPrepare đơn đang chờ chuẩn bị. Chỉ hiện đơn của lịch đã thanh toán.</div>
+
+@if (Model.Orders.Count == 0)
+{
+  <div class="panel-card p-4 text-muted">Không có đơn nước nào trong ngày này.</div>
+}
+@foreach (var slot in Model.Orders.GroupBy(o => o.StartTime.Hour))
+{
+  <div class="slot-head">Khung giờ @slot.Key.ToString("00"):00</div>
+  <div class="row g-2">
+    @foreach (var o in slot)
+    {
+      <div class="col-lg-6">
+        <div class="drink-order-card h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold">@o.Court?.Name</div>
+              <div class="small text-muted">@o.Customer?.FullName, @o.StartTime.ToString("HH:mm") - @o.EndTime.ToString("HH:mm"), @o.Code</div>
+            </div>
+            <partial name="_DrinkStatusBadge" model="o.DrinkStatus" />
+          </div>
+          <ul class="mt-2 mb-2 ps-3">
+            @foreach (var i in o.Items.OrderBy(i => i.IsFreeGift).ThenBy(i => i.ProductName))
+            {
+              <li>@i.Quantity x @i.ProductName @if (i.IsFreeGift) { <span class="badge bg-success ms-1">Tặng</span> }</li>
+            }
+          </ul>
+          @if (o.DrinkStatus == DrinkOrderStatus.ToPrepare || o.DrinkStatus == DrinkOrderStatus.Prepared)
+          {
+            <form asp-action="SetStatus" method="post" class="d-flex gap-2">
+              <input type="hidden" name="id" value="@o.Id" />
+              <input type="hidden" name="date" value="@dateStr" />
+              @if (o.DrinkStatus == DrinkOrderStatus.ToPrepare) { <button class="btn btn-sm btn-primary" name="to" value="Prepared">Đã chuẩn bị</button> }
+              <button class="btn btn-sm btn-success" name="to" value="Delivered">Đã giao</button>
+            </form>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

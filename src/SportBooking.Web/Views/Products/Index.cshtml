@@ -1,0 +1,55 @@
+@model ProductIndexVm
+@{ ViewData["Title"] = "Đồ uống & Phụ kiện"; }
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h3 class="mb-0">Đồ uống &amp; Phụ kiện</h3>
+  <div class="d-flex gap-2">
+    <a class="btn btn-sm btn-outline-secondary" asp-action="Report">Báo cáo doanh thu bán nước</a>
+    <a class="btn btn-sm btn-success" asp-action="Create">Thêm sản phẩm</a>
+  </div>
+</div>
+<p class="text-muted">Sản phẩm bán kèm khi khách đặt sân. Mỗi sân có danh mục riêng. Tồn kho được trừ khi lịch được xác nhận thanh toán.</p>
+
+@if (Model.Courts.Count == 0)
+{
+  <div class="panel-card p-4 text-muted">Bạn chưa có sân nào. Hãy thêm sân ở mục Quản lý sân trước.</div>
+}
+@foreach (var c in Model.Courts)
+{
+  var items = Model.Products.Where(p => p.CourtId == c.Id).ToList();
+  <div class="panel-card p-3 mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <h5 class="mb-0">@c.Name</h5>
+      <a class="btn btn-sm btn-outline-success" asp-action="Create" asp-route-courtId="@c.Id">Thêm sản phẩm</a>
+    </div>
+    @if (items.Count == 0)
+    {
+      <div class="text-muted small">Sân này chưa có sản phẩm.</div>
+    }
+    else
+    {
+      <table class="table align-middle mb-0">
+        <tr><th style="width:56px"></th><th>Sản phẩm</th><th>Loại</th><th class="text-end">Giá</th><th class="text-end">Tồn kho</th><th>Trạng thái</th><th></th></tr>
+        @foreach (var p in items)
+        {
+          <tr>
+            <td>
+              @if (Model.ImageUrls.TryGetValue(p.Id, out var img)) { <img class="product-thumb" src="@img" alt="@p.Name" /> }
+              else { <span class="product-thumb-icon">@DrinkPolicy.Icon(p.Category)</span> }
+            </td>
+            <td class="fw-semibold">@p.Name @if (!string.IsNullOrWhiteSpace(p.Description)) { <div class="small text-muted fw-normal">@p.Description</div> }</td>
+            <td>@p.Category.DisplayName()</td>
+            <td class="text-end">@p.Price.ToString("N0") đ</td>
+            <td class="text-end @(p.Stock <= 5 ? "text-danger fw-bold" : "")">@p.Stock</td>
+            <td><span class="badge @(p.IsActive ? "bg-success" : "bg-secondary")">@(p.IsActive ? "Đang bán" : "Đang ẩn")</span></td>
+            <td class="text-end">
+              <a class="btn btn-sm btn-outline-secondary" asp-action="Edit" asp-route-id="@p.Id">Sửa</a>
+              <form asp-action="Delete" asp-route-id="@p.Id" method="post" class="d-inline">
+                <button class="btn btn-sm btn-outline-danger" onclick="return confirm('Xóa sản phẩm này? Nếu đã có trong đơn hàng, sản phẩm sẽ được ẩn thay vì xóa.')">Xóa</button>
+              </form>
+            </td>
+          </tr>
+        }
+      </table>
+    }
+  </div>
+}

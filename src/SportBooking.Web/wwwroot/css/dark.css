@@ -86,3 +86,19 @@ html[data-bs-theme="dark"] {
 [data-bs-theme="dark"] .star-input label:hover,
 [data-bs-theme="dark"] .star-input label:hover ~ label,
 [data-bs-theme="dark"] .star-input input:checked ~ label { color: #f5a623; }
+
+/* Đồ uống kèm đơn */
+[data-bs-theme="dark"] .book-dialog.drinks-dialog { background: var(--surface); color: var(--ink); }
+[data-bs-theme="dark"] .drink-card,
+[data-bs-theme="dark"] .drink-order-card,
+[data-bs-theme="dark"] .bk-foot { background: var(--surface); color: var(--ink); }
+[data-bs-theme="dark"] .drink-price { color: var(--accent-text); }
+[data-bs-theme="dark"] .qty-btn { color: var(--accent-text); }
+[data-bs-theme="dark"] .qty-btn:hover:not(:disabled) { color: #fff; }
+[data-bs-theme="dark"] .drink-stock.low { color: #ffa94d; }
+[data-bs-theme="dark"] .drink-stock.out { color: #ff8787; }
+[data-bs-theme="dark"] .promo-bulk { background: #1f5c3d; color: #c4f3d8; }
+[data-bs-theme="dark"] .promo-streak { background: #5c3a12; color: #ffd8a8; }
+[data-bs-theme="dark"] .gift-lines .gift-line,
+[data-bs-theme="dark"] .drink-table .free-row { color: #8ce0ad; }
+[data-bs-theme="dark"] .btn-close { filter: invert(1) grayscale(100%) brightness(200%); }

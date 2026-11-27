@@ -284,6 +284,13 @@ namespace SportBooking.Web.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("DrinkStatus")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DrinksTotal")
+                        .HasPrecision(18, 0)
+                        .HasColumnType("decimal(18,0)");
+
                     b.Property<DateTime>("EndTime")
                         .HasColumnType("datetime2");
 
@@ -307,6 +314,48 @@ namespace SportBooking.Web.Migrations
                     b.HasIndex("CourtId", "StartTime", "EndTime");
 
                     b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("SportBooking.Web.Models.BookingItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BookingId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsFreeGift")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 0)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 0)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
+
+                    b.HasIndex("ProductId");
+
+                    b.ToTable("BookingItems");
                 });
 
             modelBuilder.Entity("SportBooking.Web.Models.Court", b =>
@@ -552,6 +601,79 @@ namespace SportBooking.Web.Migrations
                     b.ToTable("Payments");
                 });
 
+            modelBuilder.Entity("SportBooking.Web.Models.Product", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CourtId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(18, 0)
+                        .HasColumnType("decimal(18,0)");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourtId", "IsActive");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("SportBooking.Web.Models.Promotion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Condition")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("Reward")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Promotions");
+                });
+
             modelBuilder.Entity("SportBooking.Web.Models.Review", b =>
                 {
                     b.Property<int>("Id")
@@ -761,6 +883,25 @@ namespace SportBooking.Web.Migrations
                     b.Navigation("Customer");
                 });
 
+            modelBuilder.Entity("SportBooking.Web.Models.BookingItem", b =>
+                {
+                    b.HasOne("SportBooking.Web.Models.Booking", "Booking")
+                        .WithMany("Items")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SportBooking.Web.Models.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Booking");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("SportBooking.Web.Models.Court", b =>
                 {
                     b.HasOne("SportBooking.Web.Models.ApplicationUser", "Owner")
@@ -833,6 +974,17 @@ namespace SportBooking.Web.Migrations
                         .IsRequired();
 
                     b.Navigation("Booking");
+                });
+
+            modelBuilder.Entity("SportBooking.Web.Models.Product", b =>
+                {
+                    b.HasOne("SportBooking.Web.Models.Court", "Court")
+                        .WithMany()
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Court");
                 });
 
             modelBuilder.Entity("SportBooking.Web.Models.Review", b =>
@@ -913,6 +1065,8 @@ namespace SportBooking.Web.Migrations
 
             modelBuilder.Entity("SportBooking.Web.Models.Booking", b =>
                 {
+                    b.Navigation("Items");
+
                     b.Navigation("Payments");
 
                     b.Navigation("Review");

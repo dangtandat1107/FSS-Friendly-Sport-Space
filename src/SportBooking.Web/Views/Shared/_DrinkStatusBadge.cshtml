@@ -1,0 +1,14 @@
+@model DrinkOrderStatus
+@{
+    var cls = Model switch
+    {
+        DrinkOrderStatus.Awaiting => "bg-warning text-dark",
+        DrinkOrderStatus.ToPrepare => "bg-info text-dark",
+        DrinkOrderStatus.Prepared => "bg-primary",
+        DrinkOrderStatus.Delivered => "bg-success",
+        DrinkOrderStatus.NoShow => "bg-secondary",
+        DrinkOrderStatus.Cancelled => "bg-dark",
+        _ => "bg-light text-dark"
+    };
+}
+<span class="badge @cls">@Model.DisplayName()</span>

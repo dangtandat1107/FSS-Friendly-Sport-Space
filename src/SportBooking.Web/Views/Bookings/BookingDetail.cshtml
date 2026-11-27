@@ -1,0 +1,72 @@
+@model Booking
+@{
+    ViewData["Title"] = "Chi tiết lịch " + Model.Code;
+    var paid = Model.Payments.FirstOrDefault(p => p.Status == PaymentStatus.Paid);
+    var refunded = Model.Payments.Any(p => p.Status == PaymentStatus.Refunded);
+    var hasDrinks = Model.Items.Any();
+    // Cho báo "không nhận được nước" khi đã đến giờ chơi và còn trong thời hạn phản hồi (cùng quy tắc với báo sự cố)
+    var canReportMissing = hasDrinks && Model.Status == BookingStatus.Confirmed && Model.DrinkStatus != DrinkOrderStatus.Cancelled
+        && Model.StartTime <= DateTime.Now && DateTime.Now <= Model.EndTime.AddHours(IncidentPolicy.FeedbackWindowHours);
+}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h3 class="mb-0">Lịch @Model.Code</h3>
+  <a class="btn btn-sm btn-outline-secondary" asp-action="My">Về lịch của tôi</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="panel-card p-4 mb-3">
+      <table class="table table-sm mb-0">
+        <tr><th style="width:35%">Sân</th><td>@Model.Court?.Name</td></tr>
+        <tr><th>Thời gian</th><td>@Model.StartTime.ToString("dd/MM/yyyy HH:mm") - @Model.EndTime.ToString("HH:mm")</td></tr>
+        <tr><th>Trạng thái</th><td>
+          @if (Model.Status == BookingStatus.Cancelled) { <span class="badge bg-secondary">Đã hủy</span> }
+          else if (Model.Status == BookingStatus.Confirmed) { <span class="badge bg-success">Đã xác nhận</span> }
+          else if (Model.IsExpired) { <span class="badge bg-secondary">Hết hạn thanh toán</span> }
+          else { <span class="badge bg-warning text-dark">Chờ thanh toán</span> }
+        </td></tr>
+        <tr><th>Thanh toán</th><td>
+          @if (paid != null) { <span>@paid.Method.DisplayName() <span class="text-muted small">(@paid.TransactionCode)</span></span> }
+          else if (refunded) { <span class="text-muted">Đã hoàn tiền (ghi nhận)</span> }
+          else { <span class="text-muted">-</span> }
+        </td></tr>
+      </table>
+    </div>
+
+    <div class="panel-card p-4">
+      <h5 class="mb-3">Chi tiết thanh toán và đơn hàng kèm theo</h5>
+      @if (!hasDrinks) { <div class="text-muted small mb-2">Bạn không đặt đồ uống kèm lịch này.</div> }
+      <partial name="_OrderBreakdown" model="Model" />
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    @if (hasDrinks)
+    {
+      <div class="panel-card p-4">
+        <h5 class="mb-2">Đơn nước <partial name="_DrinkStatusBadge" model="Model.DrinkStatus" /></h5>
+        <div class="small text-muted mb-3">
+          @switch (Model.DrinkStatus)
+          {
+            case DrinkOrderStatus.Awaiting: <text>Đơn nước đang được giữ hàng. Hãy thanh toán để nhân viên sân chuẩn bị trước khi bạn đến.</text> break;
+            case DrinkOrderStatus.ToPrepare: <text>Đã thanh toán. Nhân viên sân sẽ chuẩn bị đồ uống trước giờ bạn đến.</text> break;
+            case DrinkOrderStatus.Prepared: <text>Nhân viên đã chuẩn bị xong. Bạn nhận đồ uống tại sân khi đến.</text> break;
+            case DrinkOrderStatus.Delivered: <text>Bạn đã nhận đồ uống. Chúc bạn chơi vui!</text> break;
+            case DrinkOrderStatus.NoShow: <text>Quá @DrinkPolicy.NoShowAfterHours giờ sau giờ chơi mà đơn nước chưa được nhận.</text> break;
+            case DrinkOrderStatus.Cancelled:
+              <text>Lịch đã hủy nên đơn nước cũng được hủy.@(refunded ? " Khoản thanh toán, gồm cả tiền nước, được ghi nhận hoàn tiền. Hệ thống chỉ ghi nhận trạng thái, không hoàn tiền thật, vui lòng liên hệ chủ sân." : "")</text>
+              break;
+          }
+        </div>
+
+        @if (canReportMissing)
+        {
+          <form asp-action="ReportMissingDrinks" asp-route-id="@Model.Id" method="post">
+            <button class="btn btn-outline-danger btn-sm" onclick="return confirm('Gửi báo cáo chưa nhận được nước đã đặt?')">Tôi chưa nhận được nước đã đặt</button>
+          </form>
+          <div class="small text-muted mt-2">Hệ thống sẽ tự tạo báo cáo sự cố gửi tới chủ sân.</div>
+        }
+      </div>
+    }
+  </div>
+</div>

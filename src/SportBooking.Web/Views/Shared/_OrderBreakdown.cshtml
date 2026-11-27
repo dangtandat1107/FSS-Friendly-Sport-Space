@@ -1,0 +1,31 @@
+@model Booking
+@{
+    // Chi tiết thanh toán: Tiền sân + Tiền nước − Khuyến mãi = Tổng cộng. Cần nạp sẵn Items cho Booking
+    var hoursCount = (int)Math.Round((Model.EndTime - Model.StartTime).TotalHours);
+    var gross = Model.Items.Sum(i => i.UnitPrice * i.Quantity);                              // giá trị toàn bộ đồ uống theo giá gốc
+    var discount = Model.Items.Where(i => i.IsFreeGift).Sum(i => i.UnitPrice * i.Quantity);  // phần được tặng
+}
+<table class="table table-sm drink-table mb-0">
+  <tr><td>Tiền sân (@hoursCount giờ)</td><td class="text-end">@Model.TotalPrice.ToString("N0") đ</td></tr>
+  @if (Model.Items.Any())
+  {
+    <tr><td colspan="2" class="fw-semibold pt-3">Đồ uống kèm theo</td></tr>
+    @foreach (var i in Model.Items.OrderBy(i => i.IsFreeGift).ThenBy(i => i.ProductName))
+    {
+      <tr class="@(i.IsFreeGift ? "free-row" : "")">
+        <td class="ps-3">
+          @i.ProductName <span class="text-muted">x @i.Quantity</span>
+          <span class="text-muted small">(@i.UnitPrice.ToString("N0") đ/cái)</span>
+          @if (i.IsFreeGift) { <span class="badge bg-success">Tặng</span> }
+        </td>
+        <td class="text-end">@((i.UnitPrice * i.Quantity).ToString("N0")) đ</td>
+      </tr>
+    }
+    <tr><td>Tiền nước</td><td class="text-end">@gross.ToString("N0") đ</td></tr>
+    @if (discount > 0)
+    {
+      <tr class="free-row"><td>Khuyến mãi (quà tặng)</td><td class="text-end">- @discount.ToString("N0") đ</td></tr>
+    }
+  }
+  <tr class="fw-bold border-top"><td>Tổng cộng</td><td class="text-end">@Model.GrandTotal.ToString("N0") đ</td></tr>
+</table>

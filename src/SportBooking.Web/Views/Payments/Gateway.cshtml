@@ -41,7 +41,9 @@
       <tr><th style="width:35%">@(isMomo ? "Ví nhận" : "Ngân hàng")</th><td>@Model.BankName</td></tr>
       <tr><th>@(isMomo ? "Số điện thoại" : "Số tài khoản")</th><td>@Model.AccountNo</td></tr>
       <tr><th>Chủ tài khoản</th><td>@Model.AccountName</td></tr>
-      <tr><th>Số tiền</th><td class="fw-bold">@p.Amount.ToString("N0") đ</td></tr>
+      <tr><th>Số tiền</th><td class="fw-bold">@p.Amount.ToString("N0") đ
+        @if (p.Booking != null && p.Booking.DrinksTotal > 0) { <div class="small fw-normal text-muted">Gồm tiền sân @p.Booking.TotalPrice.ToString("N0") đ và tiền nước @p.Booking.DrinksTotal.ToString("N0") đ</div> }
+      </td></tr>
       <tr><th>Nội dung</th><td><code>@p.TransactionCode</code></td></tr>
       <tr><th>Sân</th><td>@(p.Booking?.Court?.Name)</td></tr>
       <tr><th>Thời gian</th><td>@(p.Booking?.StartTime.ToString("dd/MM/yyyy HH:mm")) - @(p.Booking?.EndTime.ToString("HH:mm"))</td></tr>

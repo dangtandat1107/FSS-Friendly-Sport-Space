@@ -1,0 +1,55 @@
+@model OrderDrinksViewModel
+@* Hộp thoại đặt sân kèm đồ uống. Mở khi khách bấm ô xanh trên lịch dạng lưới; toàn bộ hành vi nằm trong wwwroot/js/order-drinks.js.
+   Phần trên: thông tin sân đã chọn. Phần dưới: "Bạn có muốn đặt nước uống kèm?" với danh sách sản phẩm. *@
+<dialog id="book-dialog" class="book-dialog drinks-dialog" aria-labelledby="bk-title"
+        data-products-url="@Url.Action("GetProductsByCourt", "Bookings")"
+        data-quote-url="@Url.Action("QuoteDrinks", "Bookings")">
+  <form id="bk-form" asp-controller="Bookings" asp-action="Create" method="post">
+    <div class="bk-head">
+      <h5 id="bk-title" class="mb-0">Đặt sân</h5>
+      <button type="button" class="btn-close" id="bk-close" aria-label="Đóng"></button>
+    </div>
+
+    <div class="bk-body">
+      <!-- PHẦN TRÊN: thông tin sân đã chọn -->
+      <section class="bk-court" aria-label="Thông tin sân">
+        <input type="hidden" name="courtId" id="bk-court" />
+        <input type="hidden" name="date" value="@Model.Date.ToString("yyyy-MM-dd")" />
+        <input type="hidden" name="hour" id="bk-hour" />
+        <dl class="book-info">
+          <dt>Sân</dt><dd id="bk-name"></dd>
+          <dt>Môn</dt><dd id="bk-sport"></dd>
+          <dt>Ngày</dt><dd>@Model.Date.ToString("dd/MM/yyyy")</dd>
+          <dt>Giờ bắt đầu</dt><dd id="bk-start"></dd>
+          <dt>Tiền sân</dt><dd id="bk-court-price"></dd>
+        </dl>
+        <label class="form-label" for="bk-hours">Thời lượng</label>
+        <select name="hours" id="bk-hours" class="form-select"></select>
+      </section>
+
+      <!-- PHẦN DƯỚI: đồ uống kèm -->
+      <section class="bk-drinks" id="bk-drinks" aria-labelledby="bk-drinks-title">
+        <h6 id="bk-drinks-title" class="mb-2">Bạn có muốn đặt nước uống kèm?</h6>
+        <div id="bk-banners" class="promo-banners" aria-live="polite"></div>
+        <div id="bk-products" class="drink-grid"></div>
+        <div id="bk-drinks-msg" class="small text-danger mt-2" role="status"></div>
+      </section>
+    </div>
+
+    <div class="bk-foot">
+      <div id="bk-items"></div>
+      <dl class="bk-summary">
+        <dt>Tiền sân</dt><dd id="bk-sum-court">0 đ</dd>
+        <dt>Tiền nước</dt><dd id="bk-sum-drinks">0 đ</dd>
+        <dt class="bk-total">Tổng cộng</dt><dd class="bk-total" id="bk-sum-total">0 đ</dd>
+      </dl>
+      <div id="bk-gifts" class="gift-lines"></div>
+      <div class="bk-actions">
+        <button type="submit" class="btn btn-outline-secondary" id="bk-skip">Bỏ qua, chỉ đặt sân</button>
+        <button type="submit" class="btn btn-success" id="bk-add" formaction="@Url.Action("CreateBookingWithItems", "Bookings")">Thêm vào đơn &amp; thanh toán</button>
+      </div>
+      <div class="small text-muted mt-2">Sau khi xác nhận, bạn có @IBookingService.PaymentTimeoutMinutes phút để thanh toán, quá hạn lịch sẽ tự hủy.</div>
+    </div>
+  </form>
+</dialog>
+<script src="~/js/order-drinks.js" asp-append-version="true"></script>

@@ -1,0 +1,55 @@
+@model DrinkReportVm
+@{
+    ViewData["Title"] = "Doanh thu bán nước";
+    var max = Model.Rows.Count == 0 ? 0 : Model.Rows.Max(r => r.Revenue);
+    var rangeLabel = Model.Range == "week" ? "8 tuần gần nhất" : Model.Range == "month" ? "6 tháng gần nhất" : "14 ngày gần nhất";
+}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+  <h3 class="mb-0">Doanh thu bán nước</h3>
+  <a class="btn btn-sm btn-outline-secondary" asp-action="Index">Về danh mục đồ uống</a>
+</div>
+
+<ul class="nav nav-tabs mb-3">
+  <li class="nav-item"><a class="nav-link @(Model.Range == "day" ? "active" : "")" asp-action="Report" asp-route-range="day">Theo ngày</a></li>
+  <li class="nav-item"><a class="nav-link @(Model.Range == "week" ? "active" : "")" asp-action="Report" asp-route-range="week">Theo tuần</a></li>
+  <li class="nav-item"><a class="nav-link @(Model.Range == "month" ? "active" : "")" asp-action="Report" asp-route-range="month">Theo tháng</a></li>
+</ul>
+
+<div class="row g-2 mb-3">
+  <div class="col-md-4"><div class="stat-card p-3 text-center"><div class="text-muted small">Doanh thu (@rangeLabel)</div><div class="fs-4 fw-bold">@Model.TotalRevenue.ToString("N0") đ</div></div></div>
+  <div class="col-md-4"><div class="stat-card p-3 text-center"><div class="text-muted small">Số món đã bán</div><div class="fs-4 fw-bold">@Model.TotalItems</div></div></div>
+  <div class="col-md-4"><div class="stat-card p-3 text-center"><div class="text-muted small">Số món đã tặng (khuyến mãi)</div><div class="fs-4 fw-bold">@Model.TotalGifts</div></div></div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="panel-card p-3">
+      <table class="table align-middle mb-0">
+        <tr><th>@(Model.Range == "month" ? "Tháng" : Model.Range == "week" ? "Tuần" : "Ngày")</th><th style="width:40%"></th><th class="text-end">Doanh thu</th><th class="text-end">Đã bán</th><th class="text-end">Đã tặng</th></tr>
+        @foreach (var r in Model.Rows)
+        {
+          <tr>
+            <td>@r.Label</td>
+            <td><div class="bar-cell" style="width:@(max > 0 ? (int)(r.Revenue * 100 / max) : 0)%"></div></td>
+            <td class="text-end">@r.Revenue.ToString("N0") đ</td>
+            <td class="text-end">@r.Items</td>
+            <td class="text-end">@r.Gifts</td>
+          </tr>
+        }
+      </table>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="panel-card p-3">
+      <h6>Bán chạy nhất</h6>
+      @if (Model.Top.Count == 0) { <div class="text-muted small">Chưa có đơn nào trong khoảng này.</div> }
+      else
+      {
+        <ol class="mb-0 ps-3">
+          @foreach (var t in Model.Top) { <li>@t.Name <span class="text-muted small">(@t.Quantity cái, @t.Revenue.ToString("N0") đ)</span></li> }
+        </ol>
+      }
+    </div>
+    <div class="small text-muted mt-2">Chỉ tính các lịch đã xác nhận thanh toán. Quà tặng không tính vào doanh thu.</div>
+  </div>
+</div>

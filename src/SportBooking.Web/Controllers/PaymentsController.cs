@@ -30,7 +30,7 @@ public class PaymentsController : Controller
     [Authorize(Roles = "Customer")]
     public async Task<IActionResult> Pay(int bookingId)
     {
-        var b = await _db.Bookings.AsNoTracking().Include(x => x.Court).Include(x => x.Payments)
+        var b = await _db.Bookings.AsNoTracking().Include(x => x.Court).Include(x => x.Payments).Include(x => x.Items)   // Items: đơn nước hiện trong bảng chi tiết
             .FirstOrDefaultAsync(x => x.Id == bookingId && x.CustomerId == UserId);
         if (b == null) return NotFound();
 

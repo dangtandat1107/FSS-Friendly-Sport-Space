@@ -12,7 +12,9 @@ public interface IBookingService
     const int OpenHour = 6;
     const int CloseHour = 22;
     const int PaymentTimeoutMinutes = 15;   // thời gian giữ chỗ chờ thanh toán
-    Task<BookingResult> CreateAsync(string customerId, int courtId, DateTime start, int hours);
+    // items = null: chỉ đặt sân. items != null (kể cả rỗng): đặt kèm đơn nước, streakDays dùng để xét quà tặng theo chuỗi tập luyện
+    Task<BookingResult> CreateAsync(string customerId, int courtId, DateTime start, int hours,
+        IReadOnlyList<OrderLine>? items = null, int streakDays = 0);
     // Trạng thái từng giờ của từng sân trong một ngày, dùng để vẽ lịch dạng lưới: grid[courtId][hour]
     Task<Dictionary<int, Dictionary<int, SlotState>>> GetDayGridAsync(IReadOnlyCollection<Court> courts, DateTime date);
 }
@@ -21,9 +23,11 @@ public class BookingService : IBookingService
 {
     private readonly AppDbContext _db;
     private readonly ILogger<BookingService> _log;
-    public BookingService(AppDbContext db, ILogger<BookingService> log) { _db = db; _log = log; }
+    private readonly IPromotionService _promos;
+    public BookingService(AppDbContext db, ILogger<BookingService> log, IPromotionService promos) { _db = db; _log = log; _promos = promos; }
 
-    public async Task<BookingResult> CreateAsync(string customerId, int courtId, DateTime start, int hours)
+    public async Task<BookingResult> CreateAsync(string customerId, int courtId, DateTime start, int hours,
+        IReadOnlyList<OrderLine>? items = null, int streakDays = 0)
     {
         if (hours < 1 || hours > 4) return new(false, "Thời lượng đặt phải từ 1 đến 4 giờ.");
         start = new DateTime(start.Year, start.Month, start.Day, start.Hour, 0, 0);
@@ -50,13 +54,32 @@ public class BookingService : IBookingService
                  (b.Status == BookingStatus.Pending && (b.ExpiresAt == null || b.ExpiresAt > now))));
             if (conflict) return new(false, "Khung giờ này đã có người đặt.");
 
+            // Đơn nước: server tự kiểm tra tồn kho, giới hạn số lượng và khuyến mãi trong cùng transaction (không tin giá hay quà tặng từ trình duyệt).
+            // Nhờ Serializable nên hai người cùng đặt chai nước cuối cùng thì chỉ một người thành công.
+            DrinkQuote? quote = null;
+            if (items != null)
+            {
+                var q = await _promos.QuoteAsync(courtId, items, streakDays);
+                if (!q.Ok) return new(false, string.Join(" ", q.Errors));
+                if (q.Lines.Count > 0) quote = q;
+            }
+
             var booking = new Booking
             {
                 CourtId = courtId, CustomerId = customerId,
                 StartTime = start, EndTime = end,
                 TotalPrice = court.PricePerHour * hours,
+                DrinksTotal = quote?.DrinksTotal ?? 0,
+                DrinkStatus = quote != null ? DrinkOrderStatus.Awaiting : DrinkOrderStatus.None,
                 ExpiresAt = now.AddMinutes(IBookingService.PaymentTimeoutMinutes)
             };
+            if (quote != null)
+                foreach (var l in quote.Lines)
+                    booking.Items.Add(new BookingItem
+                    {
+                        ProductId = l.ProductId, ProductName = l.Name, Quantity = l.Quantity,
+                        UnitPrice = l.UnitPrice, TotalPrice = l.LineTotal, IsFreeGift = l.IsFree
+                    });
             _db.Bookings.Add(booking);
             await _db.SaveChangesAsync();
             await tx.CommitAsync();

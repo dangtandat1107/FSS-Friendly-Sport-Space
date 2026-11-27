@@ -129,3 +129,34 @@ public enum CompensationType
     [Display(Name = "Voucher giảm giá")] Voucher,
     [Display(Name = "Hoàn tiền")] Refund
 }
+
+// ---------- Đồ uống và phụ kiện kèm đơn đặt sân ----------
+// Không đổi thứ tự hoặc xóa giá trị đã có, vì database lưu số nguyên của enum
+
+public enum ProductCategory
+{
+    [Display(Name = "Nước suối")] Water,
+    [Display(Name = "Nước điện giải")] Electrolyte,
+    [Display(Name = "Nước ngọt")] SoftDrink,
+    [Display(Name = "Khăn lạnh")] Towel,
+    [Display(Name = "Phụ kiện")] Accessory
+}
+
+// Trạng thái đơn nước đi kèm một lịch đặt (mỗi lịch có tối đa một đơn nước)
+public enum DrinkOrderStatus
+{
+    [Display(Name = "Không có đơn nước")] None,
+    [Display(Name = "Chờ thanh toán")] Awaiting,        // đã giữ hàng trong lúc khách thanh toán
+    [Display(Name = "Chờ chuẩn bị")] ToPrepare,         // lịch đã xác nhận, nhân viên cần chuẩn bị
+    [Display(Name = "Đã chuẩn bị")] Prepared,
+    [Display(Name = "Đã giao")] Delivered,
+    [Display(Name = "Không nhận hàng")] NoShow,         // quá giờ chơi mà khách không nhận
+    [Display(Name = "Đã hủy")] Cancelled
+}
+
+public enum PromotionType
+{
+    [Display(Name = "Mua nhiều tặng thêm")] BulkQuantityGift,   // Condition = số chai tối thiểu, Reward = số chai tặng
+    [Display(Name = "Chuỗi tập luyện tặng nước suối")] StreakFreeWater   // Condition = số ngày trong chuỗi, Reward = số chai tặng
+}
+
