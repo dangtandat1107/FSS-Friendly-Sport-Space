@@ -55,12 +55,13 @@ Chưa làm so với kế hoạch tuần 4:
 - Toast khi đặt sân thành công kèm mã đơn FSS-XXXXX
 - Giao diện tối, lưu lựa chọn trong `localStorage`
 - Chuỗi tập luyện (Streak) cho phép nghỉ xen kẽ (hạn giữ chuỗi 3 ngày), thống kê cá nhân và huy hiệu (bảng `UserStats`, `Badges`, `UserBadges`, migrations `AddGamification` và `AddGraceDaysToUserStats`)
+- Đặt nước uống kèm khi đặt sân (hộp thoại chọn đồ uống trên lịch lưới, khuyến mãi tự động, đơn nước trong thanh toán, Lịch của tôi, trang quản lý đồ uống của chủ sân và danh sách đơn nước cho nhân viên) (bảng `Products`, `BookingItems`, `Promotions`, migration `AddDrinkOrders`)
 - Ghi nhận sự cố trên sân và vai trò Nhân viên sân (Staff): luồng SOS trong giờ chơi và luồng phản hồi sau giờ chơi, SLA, tự động leo thang lên Admin (bảng `Staffs`, `Incidents`, `IncidentLogs`, migration `AddIncidents`)
 
 Còn lại:
 - Unit test cho `BookingService` và điều kiện đánh giá (chuyển từ tuần 4)
 - Hoàn thiện ERD, Use Case và đưa vào thư mục `docs/`
-- Tiếp tục lộ trình đã chốt ở tuần 3: order nước kèm và khuyến mãi (sẽ đọc chuỗi tập luyện để tặng nước), rồi 2 chức năng AI
+- Tiếp tục lộ trình đã chốt ở tuần 3: 2 chức năng AI (chatbot đặt sân, tư vấn môn thể thao)
 
 ## Công nghệ
 - ASP.NET Core 8 MVC, Razor Views, Bootstrap 5
@@ -114,7 +115,7 @@ Còn lại:
 | Tài liệu thiết kế (ERD, Use Case) | Chưa đưa vào repo |
 | Thống kê nâng cao (biểu đồ, theo thời gian, theo sân) | Chưa |
 | Cache dữ liệu, hàng đợi, thời gian thực (SignalR), reverse proxy HTTPS | Chưa. `IMemoryCache` hiện chỉ dùng để giới hạn thử mã quên mật khẩu. Đã có 1 tiến trình nền (leo thang sự cố quá hạn); thông báo SOS dùng polling 15 giây. Giữ chỗ 15 phút được kiểm tra khi truy vấn, chưa có tiến trình nền dọn lịch hết hạn |
-| Hạng mục mở rộng đã chốt ở tuần 3 còn lại (order nước kèm, khuyến mãi) | Chưa |
+| Đặt nước kèm và khuyến mãi (Upselling) | Đã code, đang kiểm thử |
 | Phần AI (chatbot đặt sân, tư vấn môn thể thao, dự báo giờ cao điểm), lớp kiểm soát AI, bộ kiểm thử AI | Chưa |
 | Triển khai public có HTTPS | Chưa |
 
@@ -221,13 +222,22 @@ Một bảng `Incidents` cho cả hai luồng, phân biệt bằng `IsRealTime`.
 - **Huy hiệu:** 🌱 Người mới bắt đầu (chuỗi 3 ngày), ⚔️ Chiến binh (7 ngày), 🛡️ Kỷ luật thép (chuỗi dài nhất từ 14 ngày), 👑 Huyền thoại (30 ngày). Danh mục lưu trong bảng `Badges`; đạt rồi thì giữ mãi, huy hiệu mới được báo bằng toast.
 - **Liên kết với tính năng khác:** `IStreakService.GetStatsAsync(userId)` trả về thống kê đã làm mới, là nơi các tính năng sau (ưu đãi nước uống khi chuỗi từ 7 ngày) đọc `CurrentStreak`, không đọc thẳng bảng `UserStats` vì giá trị lưu sẵn có thể cũ nếu chuỗi vừa đứt.
 
+## Đặt nước uống kèm khi đặt sân (Upselling)
+- **Luồng khách hàng:** bấm ô xanh trên lịch lưới thì mở hộp thoại hai phần. Phần trên là thông tin sân (tên, môn, giờ, tiền sân, chọn thời lượng). Phần dưới là "Bạn có muốn đặt nước uống kèm?" với thẻ sản phẩm (hình, tên, giá, tồn kho, nút + và -). Tổng tiền cập nhật ngay khi đổi số lượng. "Bỏ qua, chỉ đặt sân" đi thẳng tới thanh toán; "Thêm vào đơn và thanh toán" đi tới thanh toán với tổng = tiền sân + tiền nước. Mã VietQR tự dựng theo tổng mới.
+- **Khuyến mãi tự động** (bảng `Promotions`, đổi ngưỡng trực tiếp trong bảng): đặt từ 6 chai trở lên thì tặng 1 chai (loại rẻ nhất trong đơn); chuỗi tập luyện từ 7 ngày thì free 1 nước suối mỗi lần đặt sân. Giá, quà tặng và tồn kho do server tính lại ở lúc tạo đơn (`PromotionService.QuoteAsync`), không tin dữ liệu từ trình duyệt.
+- **Tồn kho:** hết hàng thì hiện "Hết hàng" và khóa nút. Hàng được giữ trong lúc khách thanh toán (đơn quá hạn tự hết giữ), kho thật bị trừ khi lịch được xác nhận thanh toán, hủy lịch thì hoàn kho nếu chưa chuẩn bị. Giới hạn mỗi sản phẩm tối đa 10 trong một đơn.
+- **Trạng thái đơn nước:** Chờ thanh toán, Chờ chuẩn bị, Đã chuẩn bị, Đã giao do nhân viên hoặc chủ sân cập nhật ở trang "Đơn nước". Quá 2 giờ sau giờ chơi mà chưa giao thì tự chuyển "Không nhận hàng" (tiến trình nền). Khách xem đơn trong "Lịch của tôi, Chi tiết" và có nút "Tôi chưa nhận được nước đã đặt", tự tạo báo cáo sự cố gửi chủ sân.
+- **Hủy lịch đã thanh toán:** đơn nước chuyển "Đã hủy", tiền nước được ghi nhận hoàn tiền cùng đơn (hệ thống chỉ ghi nhận trạng thái, không hoàn tiền thật).
+- **Chủ sân:** menu "Đồ uống" để thêm, sửa, xóa sản phẩm của từng sân (kèm ảnh) và xem báo cáo doanh thu bán nước theo ngày, tuần, tháng. Sản phẩm đã có trong đơn thì chỉ ẩn, không xóa.
+- **Số tiền:** `Booking.TotalPrice` vẫn là tiền sân; tiền nước nằm ở `Booking.DrinksTotal`; số phải thanh toán là `Booking.GrandTotal`. Thống kê doanh thu trong trang Admin hiện chỉ tính tiền sân.
+
 ## Cấu trúc thư mục
 ```
 src/SportBooking.Web
-├── Controllers/   Account, Profile, Home, Courts, Bookings, Payments, Reviews, Incidents, Staff, Admin
-├── Models/        Court, Booking, Payment, Review, Staff, Incident, UserStats (Badge, UserBadge), ApplicationUser, Enums
+├── Controllers/   Account, Profile, Home, Courts, Bookings, Payments, Reviews, Incidents, Staff, Products, DrinkOrders, Admin
+├── Models/        Court, Booking, Payment, Review, Staff, Incident, UserStats (Badge, UserBadge), Product (BookingItem, Promotion), ApplicationUser, Enums
 ├── Data/          AppDbContext, DbSeeder
-├── Services/      BookingService, PaymentService, IncidentService, IncidentEscalationWorker, StreakService, VietQrService, EmailService, AvatarService, ImageStore, AppClaimsFactory
+├── Services/      BookingService, PaymentService, IncidentService, IncidentEscalationWorker, StreakService, ProductService, PromotionService, DrinkOrderService, VietQrService, EmailService, AvatarService, ImageStore, AppClaimsFactory
 ├── Extensions/    CourtOptions, ReviewExtensions, SportInfo, EnumExtensions
 ├── ViewModels/    Các model cho form và trang
 ├── Views/         Razor Views (Shared/_CalendarGrid là lịch dạng lưới)
